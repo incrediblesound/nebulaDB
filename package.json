@@ -1,0 +1,17 @@
+{
+  "name": "point",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lexer.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "James Edwards",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.7.1"
+  }
+}
