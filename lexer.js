@@ -9,7 +9,7 @@ var result = [];
 body = body.split(/(\r\n|\n|\r)/);
 _.forEach(body, function(line){
 	if(!(/(\r\n|\n|\r)/).test(line) && line.length){
-		line = line.split(/(\?|\-\>|\:|\-\!|\,)/);
+		line = line.split(/(\?|\-\>|\:|\-\!|\,|\^)/);
 		line = _.noEmpties(line);
 		result.push(line);
 	}

@@ -1,3 +1,6 @@
 father->male
 father:eric,james
+boy->male^child
 ?eric->male
+?eric->boy
+?eric->father

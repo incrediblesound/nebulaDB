@@ -9,7 +9,6 @@ module.exports = function(lines){
 	var stack = [], entity;
 	_.forEach(lines, function(line){
 		entity = new Entity();
-
 		if(line[0] === '?'){ // a query just tests whether the statement is true
 			entity.query = true;
 			line.shift();
@@ -22,6 +21,9 @@ module.exports = function(lines){
 		_.forEach(line, function(part, idx){
 			if(relations.contains(part) && idx !== 0 && idx !== 2){
 				entity.addRelation(part);
+			}
+			else if(part === '^'){
+				entity.makeCompound();
 			}
 			else {
 				part = _.processValue(part);

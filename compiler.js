@@ -33,35 +33,47 @@ module.exports = function(stack){
 }
 
 function createQuery(entity){
+	var sourceNode = _.first(entity.source);
+	var targetNode = _.first(entity.target);
 	var relationFunction = lib.relationToFunc[entity.relation.type];
 	if(relationFunction !== undefined){
 		addQ(relationFunction+'(');
-		addQ('&'+LIBRARY[entity.source.content].varName+', &');
-		addQ(LIBRARY[entity.target.content].varName+');\n');
+		addQ('&'+LIBRARY[sourceNode.content].varName+', &');
+		addQ(LIBRARY[targetNode.content].varName+');\n');
 	} else {
 		addQ('custom_relation(');
 		addQ('&'+LIBRARY[entity.relation.type].varName+', &');
-		addQ(LIBRARY[entity.source.content].varName+', &');
-		addQ(LIBRARY[entity.target.content].varName+');\n');
+		addQ(LIBRARY[sourceNode.content].varName+', &');
+		addQ(LIBRARY[targetNode.content].varName+');\n');
 	}
 }
 
 function createEntities(entity){
-	if(LIBRARY[entity.source.content] === undefined){
-		LIBRARY[entity.source.content] = {};
-		writeValueEntity(entity.source);
+	var sourceNode = _.first(entity.source);
+	if(LIBRARY[sourceNode.content] === undefined){
+		LIBRARY[sourceNode.content] = {};
+		writeValueEntity(sourceNode);
 	}
-	if(LIBRARY[entity.target.content] === undefined){
-		LIBRARY[entity.target.content] = {};
-		writeValueEntity(entity.target);
+	_.forEach(entity.target, function(targetNode){
+		if(LIBRARY[targetNode.content] === undefined){
+			LIBRARY[targetNode.content] = {};
+			writeValueEntity(targetNode);
+		}
+	})
+	// if(LIBRARY[entity.source.content][entity.target.content] === undefined){
+	// 	LIBRARY[entity.source.content][entity.target.content] = new Set();
+	// }
+	// LIBRARY[entity.source.content][entity.target.content].add(entity.relation.type);
+	if(entity.target.length > 1){
+		addCompoundRelation({
+			source: LIBRARY[sourceNode.content].varName,
+			targets: entity.target,
+			relation: entity.relation.type
+		})
 	}
-	if(LIBRARY[entity.source.content][entity.target.content] === undefined){
-		LIBRARY[entity.source.content][entity.target.content] = new Set();
-	}
-	LIBRARY[entity.source.content][entity.target.content].add(entity.relation.type);
-	addRelationToObject({
-		source: LIBRARY[entity.source.content].varName,
-		target: LIBRARY[entity.target.content].varName,
+	addRelation({
+		source: LIBRARY[sourceNode.content].varName,
+		target: LIBRARY[_.first(entity.target).content].varName,
 		relation: entity.relation.type
 	})
 }
@@ -86,7 +98,7 @@ function writeValueEntity(value){
 	LIBRARY[value.content]["varName"] = varName;
 };
 
-function addRelationToObject(options){
+function addRelation(options){
 	var relationType = lib.relationToType(options.relation);
 	if(relationType === 'c'){
 		var customName = createCustomRelation(options.relation);
@@ -95,17 +107,48 @@ function addRelationToObject(options){
 	add('struct Link '+relationName+';\n');
 	add(relationName+'.source = &'+options.source+';\n');
 	add(relationName+'.target = &'+options.target+';\n');
+	add(relationName+'.relation = \''+relationType+'\';\n');
 	if(customName !== undefined){
 		add(relationName+'.custom = &'+customName+';\n');
-		add('add_outgoing_link(&'+customName+', &'+relationName+');\n');
+		// add('add_outgoing_link(&'+customName+', &'+relationName+');\n');
 	}
-	add(relationName+'.relation = \''+relationType+'\';\n');
 	add('add_outgoing_link(&'+options.source+', &'+relationName+');\n');
 	add('add_incoming_link(&'+options.target+', &'+relationName+');\n');
 };
 
+function addCompoundRelation(options){
+	var hubName = createHubNode(options.targets);
+	var relationName = variables.newVariable();
+	add('struct Link '+relationName+';\n');
+	add(relationName+'.source = &'+options.source+';\n');
+	add(relationName+'.target = &'+hubName+';\n');
+	add(relationName+'.relation = \'m\';\n');
+
+	add(relationName+'.custom = &'+hubName+';\n');
+	// add('add_outgoing_link(&'+hubName+', &'+relationName+');\n');
+
+	add('add_outgoing_link(&'+options.source+', &'+relationName+');\n');
+	add('add_incoming_link(&'+hubName+', &'+relationName+');\n');
+};
+
+function createHubNode(targets){
+	var hubName = variables.newVariable();
+	add('struct Node '+hubName+';\n');
+	add(hubName+'.outgoing_len = 0;\n');
+	add(hubName+'.incoming_len = 0;\n');
+	add(hubName+'.outgoing = (struct Link *) malloc(sizeof(struct Link));\n');
+	add(hubName+'.incoming = (struct Link *) malloc(sizeof(struct Link));\n');
+	add(hubName+'.type = \'h\';\n');
+	var varName;
+	_.forEach(targets, function(targetNode){
+		varName = LIBRARY[targetNode.content].varName;
+		addRelation({source: hubName, target: varName, relation: '->'});
+	})
+	return hubName;
+};
+
 function createCustomRelation(type){
-	if(LIBRARY[type].varName !== undefined){
+	if(LIBRARY[type] !== undefined){
 		return LIBRARY[type].varName;
 	}
 	LIBRARY[type] = {};

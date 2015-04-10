@@ -22,6 +22,10 @@ struct Node {
 	char type;
 };
 
+struct Array {
+	struct Node *outgoing;
+	int outgoing_len;
+};
 
 struct Link {
 	struct Node *source;
@@ -65,7 +69,7 @@ int has_state_check(struct Node *a, struct Node *b){
 	int state_found = 0;
 	for(int i = 0; i < a->outgoing_len; i++){
 		if(a->outgoing[i].relation == 'c'){
-			state_found = has_state_check(a->outgoing[i].custom, b) || state_found;
+			state_found = has_state_check(a->outgoing[i].custom, b) || compare(a->outgoing[i].custom, b) || state_found;
 		}
 		else if(a->outgoing[i].relation != 'n'){
 			int equal = compare(a->outgoing[i].target, b);
@@ -91,8 +95,82 @@ int has_state_check(struct Node *a, struct Node *b){
 	return state_found;
 };
 
+void add_to_array(struct Array *a, struct Node *b){
+	a->outgoing_len += 1;
+	if(a->outgoing_len == 1){
+		a->outgoing[0] = *b;
+	} else {
+		a->outgoing = (struct Node *) realloc(a->outgoing, sizeof(struct Node) * a->outgoing_len);
+		a->outgoing[a->outgoing_len - 1] = *b;
+	}
+};
+
+void add_outgoing(struct Array *base, struct Node *target){
+	add_to_array(base, target);
+	if(target->type != 'h'){ // hubs are added with their outgoing nodes attached
+		for(int i = 0; i < target->outgoing_len; i++){
+			if(target->outgoing[i].relation == 'm'){ // multiple links add hubs
+				add_to_array(base, target->outgoing[i].custom);
+			} 
+			else if(target->outgoing[i].relation == 'c'){ // custom links add custom nodes
+				add_outgoing(base, target->outgoing[i].custom);	
+			} 
+			else if(target->outgoing[i].relation != 'n'){
+				add_to_array(base, target->outgoing[i].target);
+				if(target->outgoing[i].target->outgoing_len){
+					add_to_array(base, target->outgoing[i].target);
+				}
+			}
+		}
+	}
+}
+
+struct Array *compile_states(struct Node *node){
+	struct Array *result = (struct Array *) malloc(sizeof(struct Array));
+	result->outgoing_len = 0;
+	result->outgoing = (struct Node *) malloc(sizeof(struct Node));
+	add_outgoing(result, node);
+	return result;
+};
+
+int deep_match(struct Node *a, struct Node *b){
+	struct Array *origin_states = compile_states(a);
+	struct Array *target_states = compile_states(b);
+	int match = 0;
+	int total_multiples = 0;
+	int matched_multiples = 0;
+	int indexed = 0;
+	for(int i = 0; i < origin_states->outgoing_len; i++){
+		for(int j = 0; j < target_states->outgoing_len; j++){
+			if(target_states->outgoing[j].type == 'h'){
+				if(!indexed){
+					total_multiples += target_states->outgoing[j].outgoing_len;
+				}
+				for(int l = 0; l < target_states->outgoing[j].outgoing_len; l++){
+					if(target_states->outgoing[j].outgoing[l].target->data.name != NULL){
+						int has_match = compare(&origin_states->outgoing[i], target_states->outgoing[j].outgoing[l].target);
+						if(has_match){
+							matched_multiples += 1;
+						}
+						match = match || has_match;
+					}
+				}
+			} else {
+				match = match || compare(&origin_states->outgoing[i], &target_states->outgoing[j]);
+			}
+			if(j == target_states->outgoing_len -1){
+				indexed = 1; // stop adding up type-multiple nodes after one cycle
+			}
+		}
+	}
+	return match && (matched_multiples == total_multiples);
+};
+
 void has_state(struct Node *a, struct Node *b){
 	int has_state = has_state_check(a, b);
+	if(has_state == 0){
+		has_state = deep_match(a, b);
+	}
 	if(a->type == 's'){
 		if(has_state == 1){
 			printf("Item "GREEN"%s"RESET" has state "BLUE"%s"RESET"\n", a->data.name, b->data.name);
@@ -142,9 +220,3 @@ void custom_relation(struct Node *rel, struct Node *a, struct Node *b){
 	}
 }
 
-
-// int not_has_state_check(struct Node *a, struct Node *b){
-// 	for(int i = 0; i < a->link_len; i++){
-// 		if(a->links[i].relation == 'n')	
-// 	}
-// };
