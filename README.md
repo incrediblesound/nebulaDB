@@ -39,5 +39,5 @@ father:dave,john
 ?john->boy    
 ?dave->boy    
 
-> item john has state boy
-> item dave doesn't have state boy
+> item john has state boy    
+> item dave doesn't have state boy    
