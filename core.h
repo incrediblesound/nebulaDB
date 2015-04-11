@@ -116,10 +116,7 @@ void add_outgoing(struct Array *base, struct Node *target){
 				add_outgoing(base, target->outgoing[i].custom);	
 			} 
 			else if(target->outgoing[i].relation != 'n'){
-				add_to_array(base, target->outgoing[i].target);
-				if(target->outgoing[i].target->outgoing_len){
-					add_to_array(base, target->outgoing[i].target);
-				}
+				add_outgoing(base, target->outgoing[i].target);
 			}
 		}
 	}
@@ -163,6 +160,8 @@ int deep_match(struct Node *a, struct Node *b){
 			}
 		}
 	}
+	free(origin_states);
+	free(target_states);
 	return match && (matched_multiples == total_multiples);
 };
 
