@@ -1,6 +1,10 @@
 father->male
-father:eric,james
+dad->male
+father->dad
+dad:eric,james
+eric->child
 boy->male^child
-?eric->male
+john->boy
+?father:eric,james
 ?eric->boy
 ?eric->father

@@ -16,9 +16,9 @@ var addQ = function(string){
 }
 
 module.exports = function(stack){
-	_.forEach(stack, function(entity){
+	_.forEach(stack, function(entity, idx){
 		if(entity.query === true){
-			createQuery(entity);
+			createQuery(entity, idx);
 		} else {
 			createEntities(entity);
 		}
@@ -32,19 +32,33 @@ module.exports = function(stack){
 	});
 }
 
-function createQuery(entity){
+function createQuery(entity, idx){
 	var sourceNode = _.first(entity.source);
 	var targetNode = _.first(entity.target);
+	var sourceVarName = LIBRARY[sourceNode.content].varName
+	var targetVarName = LIBRARY[targetNode.content].varName
 	var relationFunction = lib.relationToFunc[entity.relation.type];
 	if(relationFunction !== undefined){
 		addQ(relationFunction+'(');
 		addQ('&'+LIBRARY[sourceNode.content].varName+', &');
 		addQ(LIBRARY[targetNode.content].varName+');\n');
 	} else {
+		var linkName;
+		// try{
+		// 	linkName = LIBRARY[sourceVarName][targetVarName][entity.relation.type];
+		// 	console.log(sourceVarName, targetVarName, entity.relation.type)
+		// } catch(err){
+		// 	console.log("Error on line "+(idx+1));
+		// 	console.log("No relation between "+entity.source[0].content+" and "+entity.target[0].content+".");
+		// 	return;
+		// }
+		// if(linkName === undefined){
+			linkName = LIBRARY[entity.relation.type].varName;
+		// }
 		addQ('custom_relation(');
-		addQ('&'+LIBRARY[entity.relation.type].varName+', &');
-		addQ(LIBRARY[sourceNode.content].varName+', &');
-		addQ(LIBRARY[targetNode.content].varName+');\n');
+		addQ('&'+linkName+', &');
+		addQ(sourceVarName+', &');
+		addQ(targetVarName+');\n');
 	}
 }
 
@@ -110,8 +124,14 @@ function addRelation(options){
 	add(relationName+'.relation = \''+relationType+'\';\n');
 	if(customName !== undefined){
 		add(relationName+'.custom = &'+customName+';\n');
-		// add('add_outgoing_link(&'+customName+', &'+relationName+');\n');
+		add('add_incoming_link(&'+customName+', &'+relationName+');\n');
+		LIBRARY[options.relation] = LIBRARY[options.relation] || {};
+		LIBRARY[options.relation].link = customName;
+	console.log(options.source, options.target, options.relation, relationName);
 	}
+	LIBRARY[options.source] = LIBRARY[options.source] || {};
+	LIBRARY[options.source][options.target] = LIBRARY[options.source][options.target] || {};
+	LIBRARY[options.source][options.target][options.relation] = relationName;
 	add('add_outgoing_link(&'+options.source+', &'+relationName+');\n');
 	add('add_incoming_link(&'+options.target+', &'+relationName+');\n');
 };
