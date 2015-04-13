@@ -1,6 +1,6 @@
 {
   "name": "nebuladb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NebulaDB Graph Database",
   "main": "nebula.js",
   "directories": {

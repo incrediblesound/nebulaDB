@@ -20,7 +20,9 @@ DB.prototype.init = function(options){
 		fs.writeFileSync(this.db+'.c', '#include \"src/core.h\"\n\nint main(){\n')
 	} else {
 		var lib = fs.readFileSync(this.db+'.json');
-		compiler.loadLibrary(JSON.parse(lib))
+		lib = JSON.parse(lib);
+		this.length = lib.DB_SIZE;
+		compiler.loadLibrary(lib);
 	}
 }
 
@@ -72,6 +74,8 @@ DB.prototype.process_query = function(query, cb){
 		fs.truncateSync(self.db+'.c', self.length);
 		fs.appendFileSync(self.db+'.c', code+self.tail);
 		exec('gcc '+self.db+'.c -o out', function(err){
+			if(err) console.log('COMPILE ERROR: ', err);
+
 			exec('./out', function(err, stdOut){
 				var result;
 				if(_.isNumber(stdOut)){
@@ -80,8 +84,10 @@ DB.prototype.process_query = function(query, cb){
 				} else {
 					result = JSON.parse(stdOut);
 				}
-				self.busy = false;
 				cb(result);
+				fs.truncate(self.db+'.c', self.length, function(){
+					self.busy = false;
+				});
 			})
 		});
 	})
@@ -103,6 +109,7 @@ DB.prototype.start = function(){
 
 DB.prototype.stop = function(){
 	clearInterval(this.interval);
+	this.library.DB_SIZE = this.length;
 	fs.writeFileSync(this.db+'.json', JSON.stringify(this.library))
 }
 
