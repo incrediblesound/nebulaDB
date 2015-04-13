@@ -216,16 +216,16 @@ void all_relations(struct Node *a){
 };
 
 void all_outgoing_targets(struct Node *a){
-	printf("{");
+	printf("[");
 	for(int i = 0; i < a->outgoing_len; i++){
 		if(a->outgoing[i].relation == 'e'){
 			if(i != 0){
 				printf(",");
 			}
-			printf("\"hasState\": \"%s\"", a->outgoing[i].target->data.name);
+			printf("\"%s\"", a->outgoing[i].target->data.name);
 		}
 	}
-	printf("}");
+	printf("]");
 };
 
 void custom_target(struct Node *a, struct Node *b){

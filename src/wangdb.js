@@ -37,17 +37,22 @@ DB.prototype.parse = function(query, cb){
 	cb(code);
 }
 
-DB.prototype.save = function(query){
+DB.prototype.process_save = function(query){
+	this.busy = true;
 	var self = this;
 	this.parse(query, function(code){
 		fs.appendFileSync(self.db+'.c', code);
 		stats = fs.statSync(self.db+'.c')
 		self.length = stats.size;
+		self.busy = false;
 	})
+}
+DB.prototype.save = function(query){
+	this.stack.push([query, null, false])
 }
 
 DB.prototype.query = function(query, cb){
-	this.stack.push([query, cb]);
+	this.stack.push([query, cb, true]);
 }
 
 DB.prototype.process_query = function(query, cb){
@@ -78,7 +83,11 @@ DB.prototype.start = function(){
 	this.interval = setInterval(function(){
 		if(self.stack.length && !self.busy){
 			var data = self.stack.shift();
-			self.process_query(data[0], data[1])
+			if(data[2]){
+				self.process_query(data[0], data[1])
+			} else {
+				self.process_save(data[0]);
+			}
 		}
 	})
 }

@@ -8,10 +8,10 @@ wangdb.save(['tony','->','boss']);
 wangdb.save(['tony','boss','james']);
 wangdb.save(['boss','->','powerful'])
 
-wangdb.query(['james','->','*'], function(response){
+wangdb.query(['tony','->','*'], function(response){
 	console.log(response);
-})
+});
 wangdb.query(['james','password','*'], function(response){
 	console.log(response);
 	wangdb.stop();
-})
+});
