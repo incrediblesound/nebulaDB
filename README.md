@@ -50,6 +50,25 @@ db.query(['james','*','*'], function(response){
 Documentation
 -------------
 ```javascript
-nebuladb.create(test_name, is_new)
+var db = nebuladb.create(test_name, is_new)
 ```
-This method creates a new database with the name test_name. If is_new is true, nebuladb will create a new database from scratch, otherwise it will try to load previously saved data for this database.    
+This method creates a new database with the name test_name and returns a nebuladb instance. If is_new is true, nebuladb will create a new database from scratch, otherwise it will try to load previously saved data for this database.
+```javascript
+db.save([a, b, c])
+db.saveAll([[a,b,c],
+			[a,b,c],
+			[a,b,c]
+			])
+```
+The save method saves a record to the database. It will probably take a callback in the future when I implement error messaging. The saveAll method is basically the same, but it takes an array or records and pushes them all into the queue.
+```javascript
+db.query([a,b,c], callback)
+``` 
+The query method tests the database using the given query and passes the result into the callack. There are currently five types of queries:
+```javascript
+[a,  b, c] // does item a have relation b to item c -> boolean
+[a, ->, c] // does item a have state c -> boolean
+[a, ->, *] // what are the states of item a -> array
+[a,  b, *] // what is the item with relation b to item a -> object
+[a,  *, *] // what are all the relation/target pairs for item a -> object
+```
