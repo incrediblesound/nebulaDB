@@ -1,8 +1,8 @@
 {
-  "name": "point",
+  "name": "wangdb",
   "version": "1.0.0",
-  "description": "",
-  "main": "lexer.js",
+  "description": "WangDB",
+  "main": "wang.js",
   "directories": {
     "example": "examples"
   },
@@ -10,8 +10,21 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "James Edwards",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "commander": "^2.7.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/incrediblesound/wangdb.git"
+  },
+  "keywords": [
+    "graph",
+    "database"
+  ],
+  "bugs": {
+    "url": "https://github.com/incrediblesound/wangdb/issues"
+  },
+  "homepage": "https://github.com/incrediblesound/wangdb"
 }

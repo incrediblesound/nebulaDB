@@ -1,43 +1,36 @@
-WangLang
-========
-A simple logical programming language that compiles to C.
+WangDB
+======
+Wangdb started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language.
 
-Examples
---------
-The basic pattern is like this:    
-{state}{relation}{state}    
+Use
+---
+```javascript
+//require the main file
+var wangdb = require('./wang.js');
 
-There are two basic relations:    
--> is a transitive equals    
--! means does not equal   
+//create a new database
+var db = wangdb.create('testdb', true);
 
-You can use a state as a relation like this:    
-{state-relation}:{origin-state},{target-state}    
+//save some records
+db.save(['james','job','programmer'])
+db.save(['james','age','30'])
 
-To query the program, start the line with a question mark. Here is a basic example:    
-sally->person    
-john->person    
-sister->female    
-sister:sally,john    
-?sally->female    
-?john->female    
+//query the database
+db.query(['james','job','artist'], function(response){
+	console.log(response) //=> { hasState: false }
+})
 
-> Item sally has state female    
-> Item john doesn't have state female    
+db.query(['james','*','*'], function(response){
+	console.log(response) //=> {job: 'programmer', age: '30'}
+	//stop the database
+	db.stop();
+})
+```
+Documentation
+-------------
+```javascript
+wangdb.create(test_name, is_new)
+```
+This method creates a new database with the name test_name. If is_new is true, wangdb will create a new database from scratch, otherwise it will try to load previously saved data for this database.    
 
-It is also possible to define a state as a combination of multiple states with the following pattern:    
-{state_a} -> {state_b}^{state_c}    
-This pattern means "state A is true when state B and state C are true"
-
-Here is an example:    
-
-boy->male^child    
-father->male    
-son->male    
-john->child    
-father:dave,john    
-?john->boy    
-?dave->boy    
-
-> item john has state boy    
-> item dave doesn't have state boy    
+More to come... must sleep.
