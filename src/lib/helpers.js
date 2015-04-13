@@ -12,7 +12,7 @@ function isNumber(x){
 }
 
 function forEach(arr, fn){
-	for(var i = 0; i < arr.length; i++){
+	for(var i = 0, l = arr.length; i < l; i++){
 		fn(arr[i], i);
 	}
 }

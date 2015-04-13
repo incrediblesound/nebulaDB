@@ -41,14 +41,23 @@ DB.prototype.process_save = function(query){
 	this.busy = true;
 	var self = this;
 	this.parse(query, function(code){
-		fs.appendFileSync(self.db+'.c', code);
-		stats = fs.statSync(self.db+'.c')
-		self.length = stats.size;
-		self.busy = false;
+		fs.appendFile(self.db+'.c', code, function(){
+			stats = fs.statSync(self.db+'.c')
+			self.length = stats.size;
+			self.busy = false;
+		});
 	})
 }
+
 DB.prototype.save = function(query){
 	this.stack.push([query, null, false])
+}
+
+DB.prototype.saveAll = function(array){
+	var self = this;
+	_.forEach(array, function(query){
+		self.save(query);
+	})
 }
 
 DB.prototype.query = function(query, cb){
@@ -97,7 +106,7 @@ DB.prototype.stop = function(){
 	fs.writeFileSync(this.db+'.json', JSON.stringify(this.library))
 }
 
-var wangDB = {
+var nebuladb = {
 	create: function(name, isNew){
 		var db = new DB();
 		db.init({db: name, isNew: isNew});
@@ -106,4 +115,4 @@ var wangDB = {
 	}
 };
 
-module.exports = wangDB;
+module.exports = nebuladb;

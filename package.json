@@ -1,8 +1,8 @@
 {
-  "name": "wangdb",
+  "name": "nebuladb",
   "version": "1.0.0",
-  "description": "WangDB",
-  "main": "wang.js",
+  "description": "NebulaDB Graph Database",
+  "main": "nebula.js",
   "directories": {
     "example": "examples"
   },
@@ -17,14 +17,14 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "https://github.com/incrediblesound/wangdb.git"
+    "url": "https://github.com/incrediblesound/nebuladb.git"
   },
   "keywords": [
     "graph",
     "database"
   ],
   "bugs": {
-    "url": "https://github.com/incrediblesound/wangdb/issues"
+    "url": "https://github.com/incrediblesound/nebuladb/issues"
   },
-  "homepage": "https://github.com/incrediblesound/wangdb"
+  "homepage": "https://github.com/incrediblesound/nebuladb"
 }

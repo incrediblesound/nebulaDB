@@ -1,17 +1,23 @@
-var wangDB = require('./wang.js');
-var wangdb = wangDB.create('testdb', true);
+var nebulaDB = require('./nebula.js');
+var db = nebulaDB.create('testdb', true);
 
-wangdb.save(['james','->','user']);
-wangdb.save(['james','password','th_805!'])
-wangdb.save(['tony','->','user']);
-wangdb.save(['tony','->','boss']);
-wangdb.save(['tony','boss','james']);
-wangdb.save(['boss','->','powerful'])
+db.saveAll([
+	['james','->','user'],
+	['james','password','th_805!'],
+	['james','last_name','Madison']
+	]);
+db.save(['tony','->','user']);
+db.save(['tony','->','boss']);
+db.save(['tony','boss','james']);
+db.save(['boss','->','powerful'])
 
-wangdb.query(['tony','->','*'], function(response){
+db.query(['tony','->','*'], function(response){
 	console.log(response);
 });
-wangdb.query(['james','password','*'], function(response){
+db.query(['james','*','*'], function(response){
 	console.log(response);
-	wangdb.stop();
+});
+db.query(['james','password','*'], function(response){
+	console.log(response);
+	db.stop();
 });

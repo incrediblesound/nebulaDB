@@ -1,7 +1,7 @@
-WangDB
+NebulaDB
 ======
-Wangdb started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language.    
-Wangdb uses a simple graph based schema that looks like this:
+NebulaDB started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language.    
+NebulaDB uses a simple graph based schema that looks like this:
 ```javascript
 [ source, relation, target ]
 ```
@@ -27,10 +27,10 @@ Use
 ---
 ```javascript
 //require the main file
-var wangdb = require('./wang.js');
+var nebuladb = require('./nebula.js');
 
 //create a new database
-var db = wangdb.create('testdb', true);
+var db = nebuladb.create('testdb', true);
 
 //save some records
 db.save(['james','job','programmer'])
@@ -50,6 +50,6 @@ db.query(['james','*','*'], function(response){
 Documentation
 -------------
 ```javascript
-wangdb.create(test_name, is_new)
+nebuladb.create(test_name, is_new)
 ```
-This method creates a new database with the name test_name. If is_new is true, wangdb will create a new database from scratch, otherwise it will try to load previously saved data for this database.    
+This method creates a new database with the name test_name. If is_new is true, nebuladb will create a new database from scratch, otherwise it will try to load previously saved data for this database.    
