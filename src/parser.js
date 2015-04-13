@@ -1,6 +1,6 @@
-var _ = require('./helpers.js');
-var Entity = require('./entity.js').Entity;
-var Set = require('./set.js').Set;
+var _ = require('./lib/helpers.js');
+var Entity = require('./lib/entity.js').Entity;
+var Set = require('./lib/set.js').Set;
 var compiler = require('./compiler.js');
 
 var relations = new Set(['->','-!'])
@@ -13,13 +13,8 @@ module.exports = function(lines){
 			entity.query = true;
 			line.shift();
 		}
-		if(line[1] === ':'){ // a relation definition adds a new relation and connects it to two members
-			relations.add(line[0]);
-			line = [ line[2], line[0], line[4] ];
-		}
-
 		_.forEach(line, function(part, idx){
-			if(relations.contains(part) && idx !== 0 && idx !== 2){
+			if(idx === 1){
 				entity.addRelation(part);
 			}
 			else if(part === '^'){
@@ -32,5 +27,5 @@ module.exports = function(lines){
 		})
 		stack.push(entity);
 	})
-	compiler(stack);
+	return stack;
 }

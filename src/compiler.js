@@ -1,8 +1,8 @@
-var _ = require('./helpers.js');
-var variables = require('./variables.js')();
-var Set = require('./set.js').Set;
+var _ = require('./lib/helpers.js');
+var variables = require('./lib/variables.js')();
+var Set = require('./lib/set.js').Set;
 var fs = require('fs');
-var lib = require('./lib.js');
+var lib = require('./lib/lib.js');
 var exec = require('child_process').exec;
 
 LIBRARY = {};
@@ -11,25 +11,23 @@ var queries = '';
 var add = function(string){
 	result += string;
 };
-var addQ = function(string){
-	queries += string;
-}
 
-module.exports = function(stack){
-	_.forEach(stack, function(entity, idx){
-		if(entity.query === true){
-			createQuery(entity, idx);
-		} else {
-			createEntities(entity);
-		}
-	})
-	var output = '#include \"core.h\"\n\nint main(){\n'+result+';\n'+queries+'\n};\n';
-	fs.writeFileSync('output.c', output);
-	exec('gcc output.c -o out', function(err){
-			if(err) console.log(err);
-			// exec('rm -rf output.c');
-			return;
-	});
+module.exports = {
+	loadLibrary: function(data){
+		LIBRARY = data;
+	},
+	compile: function(stack){
+		result = '';
+		_.forEach(stack, function(entity, idx){
+			if(entity.query === true){
+				createQuery(entity, idx);
+			} else {
+				createEntities(entity);
+			}
+		})
+		return { code: result, library: LIBRARY };
+		// var output = '#include \"core.h\"\n\nint main(){\n'+result+';\n'+queries+'\n};\n';
+	}	
 }
 
 function createQuery(entity, idx){
@@ -39,9 +37,9 @@ function createQuery(entity, idx){
 	var targetVarName = LIBRARY[targetNode.content].varName
 	var relationFunction = lib.relationToFunc[entity.relation.type];
 	if(relationFunction !== undefined){
-		addQ(relationFunction+'(');
-		addQ('&'+LIBRARY[sourceNode.content].varName+', &');
-		addQ(LIBRARY[targetNode.content].varName+');\n');
+		add(relationFunction+'(');
+		add('&'+LIBRARY[sourceNode.content].varName+', &');
+		add(LIBRARY[targetNode.content].varName+');\n');
 	} else {
 		var linkName;
 		// try{
@@ -55,10 +53,10 @@ function createQuery(entity, idx){
 		// if(linkName === undefined){
 			linkName = LIBRARY[entity.relation.type].varName;
 		// }
-		addQ('custom_relation(');
-		addQ('&'+linkName+', &');
-		addQ(sourceVarName+', &');
-		addQ(targetVarName+');\n');
+		add('custom_relation(');
+		add('&'+linkName+', &');
+		add(sourceVarName+', &');
+		add(targetVarName+');\n');
 	}
 }
 

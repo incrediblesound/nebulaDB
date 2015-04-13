@@ -165,24 +165,13 @@ int deep_match(struct Node *a, struct Node *b){
 	return match && (matched_multiples == total_multiples);
 };
 
-void has_state(struct Node *a, struct Node *b){
+int has_state(struct Node *a, struct Node *b){
 	int has_state = has_state_check(a, b);
 	if(has_state == 0){
 		has_state = deep_match(a, b);
 	}
-	if(a->type == 's'){
-		if(has_state == 1){
-			printf("Item "GREEN"%s"RESET" has state "BLUE"%s"RESET"\n", a->data.name, b->data.name);
-		} else {
-			printf("Item "GREEN"%s"RESET" doesn't have state "BLUE"%s"RESET"\n", a->data.name, b->data.name);
-		}
-	} else {
-		if(has_state == 1){
-			printf("Item "GREEN"%d"RESET" has state "BLUE"%d"RESET"\n", a->data.num, b->data.num);
-		} else {
-			printf("Item "GREEN"%d"RESET" doesn't have state "BLUE"%d"RESET"\n", a->data.num, b->data.num);
-		}
-	}
+	printf("%d\n", has_state);
+	return has_state;
 };
 
 int custom_relation_match(struct Link *rel, struct Node *a, struct Node *b){
@@ -197,7 +186,7 @@ int custom_relation_match(struct Link *rel, struct Node *a, struct Node *b){
 	return match;
 }
 
-int custom_relation_check(struct Node *rel, struct Node *a, struct Node *b){
+int custom_relation(struct Node *rel, struct Node *a, struct Node *b){
 	int match = 0;
 	int match_idx;
 	for(int i = 0; i < rel->incoming_len; i++){
@@ -206,28 +195,11 @@ int custom_relation_check(struct Node *rel, struct Node *a, struct Node *b){
 			match_idx = i;
 		}
 	}
-	if(match){
-		return 1;
-	} 
-	else {
+	if(match != 1){
 		for(int j = 0; j < rel->outgoing_len; j++){
-			match = custom_relation_check(rel->outgoing[j].target, a, b);
+			match = custom_relation(rel->outgoing[j].target, a, b);
 		}
 	}
+	printf("%d\n", match);
 	return match;
 }
-
-void custom_relation(struct Node *rel, struct Node *a, struct Node *b){
-	int match = 0;
-	match = custom_relation_check(rel, a, b);
-	if(match){
-		if(a->type == 's' || a->type == 'c'){
-			printf("Item "GREEN"%s"RESET" and item "GREEN"%s"RESET" have relation "BLUE"%s"RESET"\n", a->data.name, b->data.name, rel->data.name);
-		} else {
-			printf("Item %d and item %d have relation %s\n", a->data.num, b->data.num, rel->data.name);	
-		}
-	} else {
-		printf("Item "GREEN"%s"RESET" and item "GREEN"%s"RESET" don't have relation "BLUE"%s"RESET"\n", a->data.name, b->data.name, rel->data.name);
-	}
-}
-
