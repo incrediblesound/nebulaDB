@@ -1,13 +1,17 @@
-var wangDB = require('./src/wangdb.js');
-var wangdb = wangDB.create('testdb', false);
+var wangDB = require('./wang.js');
+var wangdb = wangDB.create('testdb', true);
 
-wangdb.query(['james','->','user'], function(response){
+wangdb.save(['james','->','user']);
+wangdb.save(['james','password','th_805!'])
+wangdb.save(['tony','->','user']);
+wangdb.save(['tony','->','boss']);
+wangdb.save(['tony','boss','james']);
+wangdb.save(['boss','->','powerful'])
+
+wangdb.query(['james','->','*'], function(response){
 	console.log(response);
 })
-wangdb.query(['tony','->','boss'], function(response){
-	console.log(response);
-})
-wangdb.query(['tony','boss','james'], function(response){
+wangdb.query(['james','password','*'], function(response){
 	console.log(response);
 	wangdb.stop();
 })

@@ -165,41 +165,77 @@ int deep_match(struct Node *a, struct Node *b){
 	return match && (matched_multiples == total_multiples);
 };
 
-int has_state(struct Node *a, struct Node *b){
+void has_state(struct Node *a, struct Node *b){
 	int has_state = has_state_check(a, b);
 	if(has_state == 0){
 		has_state = deep_match(a, b);
 	}
 	printf("%d\n", has_state);
-	return has_state;
 };
 
 int custom_relation_match(struct Link *rel, struct Node *a, struct Node *b){
 	int match = 0;
 	int equal_a; int equal_b; int equal_c; int equal_d;
 
-	equal_a = compare(rel->target, a);
-	equal_b = compare(rel->source, b);
-	equal_c = compare(rel->target, b);
-	equal_d = compare(rel->source, a);
-	match = (equal_a && equal_b) || (equal_c && equal_d) || match ? 1 : 0;
+	equal_a = compare(rel->source, a);
+	equal_b = compare(rel->target, b);
+	match = (equal_a && equal_b) ? 1 : 0;
 	return match;
 }
 
 int custom_relation(struct Node *rel, struct Node *a, struct Node *b){
 	int match = 0;
-	int match_idx;
 	for(int i = 0; i < rel->incoming_len; i++){
 		match = custom_relation_match(&rel->incoming[i], a, b) || match;
-		if(match){
-			match_idx = i;
-		}
 	}
-	if(match != 1){
-		for(int j = 0; j < rel->outgoing_len; j++){
-			match = custom_relation(rel->outgoing[j].target, a, b);
-		}
-	}
+	// used for logic like: bob doesn't have relation father with john but matches
+	// because father equals dad and bob has relation dad with john
+	// if(match != 1){
+	// 	for(int j = 0; j < rel->outgoing_len; j++){
+	// 		match = custom_relation(rel->outgoing[j].target, a, b);
+	// 	}
+	// }
 	printf("%d\n", match);
 	return match;
+}
+
+void all_relations(struct Node *a){
+	printf("{");
+	for(int i = 0; i < a->outgoing_len; i++){
+		if(a->outgoing[i].relation == 'e'){
+			printf("\"hasState\": \"%s\"", a->outgoing[i].target->data.name);
+		}
+		else if(a->outgoing[i].relation == 'c'){
+			printf("\"%s\": \"%s\"", a->outgoing[i].custom->data.name, a->outgoing[i].target->data.name);
+		}
+		if(i < a->outgoing_len-1){
+			printf(",");
+		}
+	}
+	printf("}");
+};
+
+void all_outgoing_targets(struct Node *a){
+	printf("{");
+	for(int i = 0; i < a->outgoing_len; i++){
+		if(a->outgoing[i].relation == 'e'){
+			if(i != 0){
+				printf(",");
+			}
+			printf("\"hasState\": \"%s\"", a->outgoing[i].target->data.name);
+		}
+	}
+	printf("}");
+};
+
+void custom_target(struct Node *a, struct Node *b){
+	int match;
+	for(int i = 0; i < b->incoming_len; i++){
+		if(b->incoming[i].relation == 'c'){
+			match = compare(b->incoming->source, a);
+			if(match){
+				printf("{\"%s\": \"%s\"}", b->data.name, b->incoming->target->data.name);
+			}
+		}
+	}
 }

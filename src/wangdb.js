@@ -1,4 +1,5 @@
 var parser = require('./parser.js');
+var _ = require('./lib/helpers.js')
 var compiler = require('./compiler.js');
 var fs = require('fs');
 var exec = require('child_process').exec;
@@ -58,12 +59,12 @@ DB.prototype.process_query = function(query, cb){
 		fs.appendFileSync(self.db+'.c', code+self.tail);
 		exec('gcc '+self.db+'.c -o out', function(err){
 			exec('./out', function(err, stdOut){
-				stdOut = parseInt(stdOut);
-				var result = {
-					source: query[0],
-					relation: query[1],
-					target: query[2],
-					hasRelation: stdOut === 1 ? true : false
+				var result;
+				if(_.isNumber(stdOut)){
+					var truthy = parseInt(stdOut);
+					result = {hasState: truthy === 1 ? true : false}
+				} else {
+					result = JSON.parse(stdOut);
 				}
 				self.busy = false;
 				cb(result);
