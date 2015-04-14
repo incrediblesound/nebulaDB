@@ -1,6 +1,6 @@
 NebulaDB
 ======
-NebulaDB started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language.    
+NebulaDB started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language. It is currently in the early stages of development and I welcome contributors.     
 NebulaDB uses a simple graph based schema that looks like this:
 ```javascript
 [ source, relation, target ]
