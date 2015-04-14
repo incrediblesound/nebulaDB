@@ -13,15 +13,17 @@ Entering three strings in this way creates three nodes in the database and sets 
 ```
 There are two ways to query the database. The first way is to simply query a pattern. The database will response with a boolean that tell you whether or not the pattern exists in the database.
 ```javascript
-['john','->','admin'] //=> {hasState: true}
-['john','->','founder'] //=> {hasState: false}
+['john','->','admin'] //=> { hasState: true }
+['john','->','founder'] //=> { hasState: false }
 ```
-The second way to query is by using an asterisk to indicate which kinds of data you want to see. So far there are two available patterns:
+The second way to query is by using an asterisk to indicate which kinds of data you want to see. So far there are three available patterns:
 ```javascript
 ['john','->','*'] 
 // returns array of simple states: ['admin','user']
+['john','first_name','*']
+// returns the target pointed to by the node in the relation position: { first_name: "John" }
 ['john','*','*']  
-// returns hash of all states: {first_name: 'John', hasState: 'admin'}
+// returns hash of all states: { first_name: 'John', hasState: 'admin' }
 ```
 Use
 ---
