@@ -1,6 +1,21 @@
 NebulaDB
 ======
-NebulaDB started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language. It is currently in the early stages of development and I welcome contributors.     
+NebulaDB started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language. It is currently in the early stages of development and I welcome contributors.    
+
+NebulaDB runs on a Node server. There is a Node.js module for interfacing with the NebulaDB server that can be found [here](https://github.com/incrediblesound/node-nebula). To run this database, clone the repository or download from npm:
+```shell
+npm install nebuladb
+```
+Then run the server:
+```shell
+node nebula.js
+>NebulaDB listening on port 1984
+```
+You will see a little message telling you that the server is listening for requests, and then you can use the node_nebula module to save and query data.    
+
+Documentation
+-------------
+
 NebulaDB uses a simple graph based schema that looks like this:
 ```javascript
 [ source, relation, target ]
@@ -49,8 +64,8 @@ db.query(['james','*','*'], function(response){
 	db.stop();
 })
 ```
-Documentation
--------------
+Methods
+-------
 ```javascript
 var db = nebuladb.create(test_name, is_new)
 ```
@@ -73,4 +88,8 @@ The query method tests the database using the given query and passes the result 
 [a, ->, *] // what are the states of item a -> array
 [a,  b, *] // what is the item with relation b to item a -> object
 [a,  *, *] // what are all the relation/target pairs for item a -> object
+```
+The close method stops the database instance from listening for queries and saves the current node tree to disk. NebulaDB uses an in-memory data structure for quick look-up, so it is important to close the db instance before ending the node process so that this tree can be written to disk.
+```javascript
+db.close() // and thats it!
 ```
