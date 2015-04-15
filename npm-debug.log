@@ -1,0 +1,95 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'publish' ]
+2 info using npm@2.1.12
+3 info using node@v0.10.33
+4 verbose node symlink /usr/local/bin/node
+5 verbose publish [ '.' ]
+6 silly cache add args [ '.', null ]
+7 verbose cache add spec .
+8 silly cache add parsed spec { raw: '.',
+8 silly cache add   scope: null,
+8 silly cache add   name: null,
+8 silly cache add   rawSpec: '.',
+8 silly cache add   spec: '/Users/james/Documents/Projects3/point',
+8 silly cache add   type: 'directory' }
+9 verbose tar pack [ '/Users/james/.npm/nebuladb/1.0.2/package.tgz',
+9 verbose tar pack   '/Users/james/Documents/Projects3/point' ]
+10 verbose tarball /Users/james/.npm/nebuladb/1.0.2/package.tgz
+11 verbose folder /Users/james/Documents/Projects3/point
+12 info prepublish nebuladb@1.0.2
+13 verbose addLocalTarball adding from inside cache /Users/james/.npm/nebuladb/1.0.2/package.tgz
+14 silly cache afterAdd nebuladb@1.0.2
+15 verbose afterAdd /Users/james/.npm/nebuladb/1.0.2/package/package.json not in flight; writing
+16 verbose afterAdd /Users/james/.npm/nebuladb/1.0.2/package/package.json written
+17 silly publish { name: 'nebuladb',
+17 silly publish   version: '1.0.2',
+17 silly publish   description: 'NebulaDB Graph Database',
+17 silly publish   main: 'nebula.js',
+17 silly publish   directories: { example: 'examples' },
+17 silly publish   scripts: { test: 'echo "Error: no test specified" && exit 1' },
+17 silly publish   author: { name: 'James Edwards' },
+17 silly publish   license: 'MIT',
+17 silly publish   dependencies: { commander: '^2.7.1' },
+17 silly publish   devDependencies: {},
+17 silly publish   repository:
+17 silly publish    { type: 'git',
+17 silly publish      url: 'https://github.com/incrediblesound/nebuladb.git' },
+17 silly publish   keywords: [ 'graph', 'database' ],
+17 silly publish   bugs: { url: 'https://github.com/incrediblesound/nebuladb/issues' },
+17 silly publish   homepage: 'https://github.com/incrediblesound/nebuladb',
+17 silly publish   readme: 'NebulaDB\n======\nNebulaDB started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language. It is currently in the early stages of development and I welcome contributors.    \n\nNebulaDB runs on a Node server. There is a Node.js module for interfacing with the NebulaDB server that can be found [here](https://github.com/incrediblesound/node-nebula). To run this database, clone the repository or download from npm:\n```shell\nnpm install nebuladb\n```\nThen run the server:\n```shell\nnode nebula.js\n>NebulaDB listening on port 1984\n```\nYou will see a little message telling you that the server is listening for requests, and then you can use the node_nebula module to save and query data.    \n\nDocumentation\n-------------\n\nNebulaDB uses a simple graph based schema that looks like this:\n```javascript\n[ source, relation, target ]\n```\nEntering three strings in this way creates three nodes in the database and sets up a special (Node)-[Link]-(Node) relationship between them. You can also use the symbol \'->\' in the relation position to indicate that the source node has the state indicated by the target node, for example:\n```javascript\n[ \'john\', \'->\', \'admin\']\n[ \'john\', \'->\', \'user\']\n[ \'john\', \'first_name\', \'John\']\n```\nThere are two ways to query the database. The first way is to simply query a pattern. The database will response with a boolean that tell you whether or not the pattern exists in the database.\n```javascript\n[\'john\',\'->\',\'admin\'] //=> { hasState: true }\n[\'john\',\'->\',\'founder\'] //=> { hasState: false }\n```\nThe second way to query is by using an asterisk to indicate which kinds of data you want to see. So far there are three available patterns:\n```javascript\n[\'john\',\'->\',\'*\'] \n// returns array of simple states: [\'admin\',\'user\']\n[\'john\',\'first_name\',\'*\']\n// returns the target pointed to by the node in the relation position: { first_name: "John" }\n[\'john\',\'*\',\'*\']  \n// returns hash of all states: { first_name: \'John\', hasState: \'admin\' }\n```\n\nMethods\n-------\n```javascript\ndb.init({name: "dbname", isNew: boolean})\n```\nThis method creates a new database with the name "dbname" and returns a nebuladb instance. If isNew is true, nebuladb will create a new database from scratch, otherwise it will try to load previously saved data for this database. This method is not used directly, but is accessed via the node_nebula modules open method.\n```javascript\ndb.save([a, b, c])\ndb.saveAll([[a,b,c],\n\t\t\t[a,b,c],\n\t\t\t[a,b,c]\n\t\t\t])\n```\nThe save method saves a record to the database. It will probably take a callback in the future when I implement error messaging. The saveAll method is basically the same, but it takes an array or records and pushes them all into the queue.\n```javascript\ndb.query([a,b,c], callback)\n``` \nThe query method tests the database using the given query and passes the result into the callack. There are currently five types of queries:\n```javascript\n[a,  b, c] // does item a have relation b to item c -> boolean\n[a, ->, c] // does item a have state c -> boolean\n[a, ->, *] // what are the states of item a -> array\n[a,  b, *] // what is the item with relation b to item a -> object\n[a,  *, *] // what are all the relation/target pairs for item a -> object\n```\nThe close method stops the database instance from listening for queries and saves the current node tree to disk. NebulaDB uses an in-memory data structure for quick look-up, so it is important to close the db instance before ending the node process so that this tree can be written to disk.\n```javascript\ndb.close() // and thats it!\n```\n',
+17 silly publish   readmeFilename: 'README.md',
+17 silly publish   gitHead: '4c25cc142e6d7b3774d3c60ae0408a7e7278b881',
+17 silly publish   _id: 'nebuladb@1.0.2',
+17 silly publish   _shasum: 'bad43baa66777089fe06151134f4127733280827',
+17 silly publish   _from: '.' }
+18 silly mapToRegistry name nebuladb
+19 silly mapToRegistry using default registry
+20 silly mapToRegistry registry https://registry.npmjs.org/
+21 silly mapToRegistry uri https://registry.npmjs.org/nebuladb
+22 verbose publish registryBase https://registry.npmjs.org/
+23 silly publish uploading /Users/james/.npm/nebuladb/1.0.2/package.tgz
+24 verbose request uri https://registry.npmjs.org/nebuladb
+25 verbose request sending authorization for write operation
+26 info attempt registry request try #1 at 21:35:52
+27 verbose request id b95fa2da07cb5ee4
+28 http request PUT https://registry.npmjs.org/nebuladb
+29 http 403 https://registry.npmjs.org/nebuladb
+30 verbose headers { date: 'Wed, 15 Apr 2015 04:35:53 GMT',
+30 verbose headers   server: 'Apache',
+30 verbose headers   'content-type': 'application/json',
+30 verbose headers   'cache-control': 'max-age=60',
+30 verbose headers   'content-length': '95',
+30 verbose headers   'accept-ranges': 'bytes',
+30 verbose headers   via: '1.1 varnish',
+30 verbose headers   'x-served-by': 'cache-sjc3133-SJC',
+30 verbose headers   'x-cache': 'MISS',
+30 verbose headers   'x-cache-hits': '0',
+30 verbose headers   'x-timer': 'S1429072552.578680,VS0,VE1249',
+30 verbose headers   'keep-alive': 'timeout=10, max=50',
+30 verbose headers   connection: 'Keep-Alive' }
+31 verbose request invalidating /Users/james/.npm/registry.npmjs.org/nebuladb on PUT
+32 error publish Failed PUT 403
+33 verbose stack Error: "You cannot publish over the previously published version 1.0.2." : nebuladb
+33 verbose stack     at CachingRegistryClient.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:242:14)
+33 verbose stack     at Request._callback (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:172:14)
+33 verbose stack     at Request.self.callback (/usr/local/lib/node_modules/npm/node_modules/request/request.js:373:22)
+33 verbose stack     at Request.emit (events.js:98:17)
+33 verbose stack     at Request.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1318:14)
+33 verbose stack     at Request.emit (events.js:117:20)
+33 verbose stack     at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1266:12)
+33 verbose stack     at IncomingMessage.emit (events.js:117:20)
+33 verbose stack     at _stream_readable.js:943:16
+33 verbose stack     at process._tickCallback (node.js:419:13)
+34 verbose statusCode 403
+35 verbose pkgid nebuladb
+36 verbose cwd /Users/james/Documents/Projects3/point
+37 error Darwin 14.0.0
+38 error argv "node" "/usr/local/bin/npm" "publish"
+39 error node v0.10.33
+40 error npm  v2.1.12
+41 error code E403
+42 error "You cannot publish over the previously published version 1.0.2." : nebuladb
+43 error If you need help, you may report this error at:
+43 error     <http://github.com/npm/npm/issues>
+44 verbose exit [ 1, true ]
