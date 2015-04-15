@@ -12,9 +12,8 @@ var DB = function(){
 	this.library = {};
 };
 
-DB.prototype.init = function(options){
+DB.prototype.init = function(options, cb){
 	this.db = options.db;
-	console.log(this)
 	this.tail = '\n};\n';
 	if(options.isNew){
 		fs.writeFileSync(this.db+'.c', '#include \"src/core.h\"\n\nint main(){\n')
@@ -24,6 +23,7 @@ DB.prototype.init = function(options){
 		this.length = lib.DB_SIZE;
 		compiler.loadLibrary(lib);
 	}
+	cb();
 }
 
 DB.prototype.parse = function(query, cb){
@@ -118,11 +118,12 @@ DB.prototype.stop = function(){
 }
 
 var nebuladb = {
-	create: function(data){
+	create: function(data, cb){
 		var db = new DB();
-		db.init({db: data.name, isNew: data.isNew});
-		db.start();
-		return db;
+		db.init({db: data.name, isNew: data.isNew}, function(){
+			db.start();
+			cb(db);
+		});
 	}
 };
 

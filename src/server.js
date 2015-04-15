@@ -20,8 +20,10 @@ function requestHandler(req, res){
 	res.writeHead(200, headers);
 	retrieveData(req, function(data){
 		if(req.url === '/init'){
-			DB = nebuladb.create(data);
-			res.end();
+			nebuladb.create(data, function(database){
+				DB = database;
+				res.end();
+			});
 		}
 		else if(req.url === '/save'){
 			DB.save(data);
