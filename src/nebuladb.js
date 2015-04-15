@@ -16,7 +16,6 @@ DB.prototype.init = function(options){
 	this.db = options.db;
 	this.tail = '\n};\n';
 	if(options.isNew){
-		fs.truncateSync(this.db+'.c',0);
 		fs.writeFileSync(this.db+'.c', '#include \"src/core.h\"\n\nint main(){\n')
 	} else {
 		var lib = fs.readFileSync(this.db+'.json');
@@ -114,9 +113,9 @@ DB.prototype.stop = function(){
 }
 
 var nebuladb = {
-	create: function(name, isNew){
+	create: function(data){
 		var db = new DB();
-		db.init({db: name, isNew: isNew});
+		db.init({db: './data/'+data.name, isNew: data.isNew});
 		db.start();
 		return db;
 	}

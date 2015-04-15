@@ -1,1 +1,1 @@
-module.exports = require('./src/nebuladb.js');
+var nebulaServer = require('./src/server.js');
