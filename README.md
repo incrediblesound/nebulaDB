@@ -40,36 +40,13 @@ The second way to query is by using an asterisk to indicate which kinds of data 
 ['john','*','*']  
 // returns hash of all states: { first_name: 'John', hasState: 'admin' }
 ```
-Use
----
-```javascript
-//require the main file
-var nebuladb = require('./nebula.js');
 
-//create a new database
-var db = nebuladb.create('testdb', true);
-
-//save some records
-db.save(['james','job','programmer'])
-db.save(['james','age','30'])
-
-//query the database
-db.query(['james','job','artist'], function(response){
-	console.log(response) //=> { hasState: false }
-})
-
-db.query(['james','*','*'], function(response){
-	console.log(response) //=> {job: 'programmer', age: '30'}
-	//stop the database
-	db.stop();
-})
-```
 Methods
 -------
 ```javascript
-var db = nebuladb.create(test_name, is_new)
+db.init({name: "dbname", isNew: boolean})
 ```
-This method creates a new database with the name test_name and returns a nebuladb instance. If is_new is true, nebuladb will create a new database from scratch, otherwise it will try to load previously saved data for this database.
+This method creates a new database with the name "dbname" and returns a nebuladb instance. If isNew is true, nebuladb will create a new database from scratch, otherwise it will try to load previously saved data for this database. This method is not used directly, but is accessed via the node_nebula modules open method.
 ```javascript
 db.save([a, b, c])
 db.saveAll([[a,b,c],
