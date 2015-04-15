@@ -28,7 +28,7 @@ function requestHandler(req, res){
 			res.end();
 		}
 		else if(req.url === '/saveall'){
-			DB.saveaAll(data);
+			DB.saveAll(data);
 			res.end();
 		}
 		else if(req.url === '/query'){

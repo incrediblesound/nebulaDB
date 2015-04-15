@@ -9,11 +9,12 @@ var DB = function(){
 	this.stack = [];
 	this.busy = false;
 	this.interval;
-	this.library;
+	this.library = {};
 };
 
 DB.prototype.init = function(options){
 	this.db = options.db;
+	console.log(this)
 	this.tail = '\n};\n';
 	if(options.isNew){
 		fs.writeFileSync(this.db+'.c', '#include \"src/core.h\"\n\nint main(){\n')
@@ -70,12 +71,14 @@ DB.prototype.process_query = function(query, cb){
 	var self = this;
 	query.unshift('?');
 	this.parse(query, function(code){
+		console.log(code);
 		fs.truncateSync(self.db+'.c', self.length);
 		fs.appendFileSync(self.db+'.c', code+self.tail);
-		exec('gcc '+self.db+'.c -o out', function(err){
+		exec('gcc '+self.db+'.c -o out',{maxBuffer: 1024 * 10000}, function(err){
 			if(err) console.log('COMPILE ERROR: ', err);
 
-			exec('./out', function(err, stdOut){
+			exec('./out',{maxBuffer: 1024 * 10000}, function(err, stdOut){
+				console.log(err, stdOut);
 				var result;
 				if(_.isNumber(stdOut)){
 					var truthy = parseInt(stdOut);
@@ -108,14 +111,16 @@ DB.prototype.start = function(){
 
 DB.prototype.stop = function(){
 	clearInterval(this.interval);
-	this.library.DB_SIZE = this.length;
-	fs.writeFileSync(this.db+'.json', JSON.stringify(this.library))
+	this.library.DB_SIZE = this.length || 0;
+	fs.writeFile(this.db+'.json', JSON.stringify(this.library), function(err){
+		console.log(err);
+	})
 }
 
 var nebuladb = {
 	create: function(data){
 		var db = new DB();
-		db.init({db: './data/'+data.name, isNew: data.isNew});
+		db.init({db: data.name, isNew: data.isNew});
 		db.start();
 		return db;
 	}

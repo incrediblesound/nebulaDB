@@ -230,12 +230,19 @@ void all_outgoing_targets(struct Node *a){
 
 void custom_target(struct Node *a, struct Node *b){
 	int match;
-	for(int i = 0; i < b->incoming_len; i++){
-		if(b->incoming[i].relation == 'c'){
-			match = compare(b->incoming->source, a);
+	int count = 0;
+	printf("{\"%s\": [ ", b->data.name);
+	for(int i = 0; i < a->outgoing_len; i++){
+		if(a->outgoing[i].relation == 'c'){
+			match = compare(a->outgoing[i].custom, b);
 			if(match){
-				printf("{\"%s\": \"%s\"}", b->data.name, b->incoming->target->data.name);
+				if(count != 0){
+					printf(",");
+				}
+				printf("\"%s\"", a->outgoing[i].target->data.name);
+				count++;
 			}
 		}
 	}
+	printf("]}\n");
 }
