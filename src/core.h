@@ -200,38 +200,90 @@ int custom_relation(struct Node *rel, struct Node *a, struct Node *b){
 }
 
 void all_relations(struct Node *a){
-	printf("{");
+	printf("[");
 	for(int i = 0; i < a->outgoing_len; i++){
 		if(a->outgoing[i].relation == 'e'){
-			printf("\"hasState\": \"%s\"", a->outgoing[i].target->data.name);
+			printf("[\"hasState\", \"%s\"]", a->outgoing[i].target->data.name);
 		}
 		else if(a->outgoing[i].relation == 'c'){
-			printf("\"%s\": \"%s\"", a->outgoing[i].custom->data.name, a->outgoing[i].target->data.name);
+			printf("[\"%s\", \"%s\"]", a->outgoing[i].custom->data.name, a->outgoing[i].target->data.name);
 		}
 		if(i < a->outgoing_len-1){
 			printf(",");
 		}
 	}
-	printf("}");
+	printf("]");
 };
 
-void all_outgoing_targets(struct Node *a){
+void all_incoming_relations(struct Node *a){
 	printf("[");
-	for(int i = 0; i < a->outgoing_len; i++){
-		if(a->outgoing[i].relation == 'e'){
-			if(i != 0){
-				printf(",");
-			}
-			printf("\"%s\"", a->outgoing[i].target->data.name);
+	for(int i = 0; i < a->incoming_len; i++){
+		if(a->incoming[i].relation == 'e'){
+			printf("[\"hasState\", \"%s\"]", a->incoming[i].target->data.name);
+		}
+		else if(a->incoming[i].relation == 'c'){
+			printf("[\"%s\", \"%s\"]", a->incoming[i].custom->data.name, a->incoming[i].target->data.name);
+		}
+		if(i < a->incoming_len-1){
+			printf(",");
 		}
 	}
 	printf("]");
 };
 
+void all_outgoing_targets(struct Node *a){
+	printf("[");
+	int printed = 0;
+	for(int i = 0; i < a->outgoing_len; i++){
+		if(a->outgoing[i].relation == 'e'){
+			if(printed != 0){
+				printf(",");
+			}
+			printf("\"%s\"", a->outgoing[i].target->data.name);
+			printed++;
+		}
+	}
+	printf("]");
+};
+
+void all_incoming_targets(struct Node *a){
+	printf("[");
+	int printed = 0;
+	for(int i = 0; i < a->incoming_len; i++){
+		if(a->incoming[i].relation == 'e'){
+			if(printed != 0){
+				printf(",");
+			}
+			printf("\"%s\"", a->incoming[i].source->data.name);
+			printed++;
+		}
+	}
+	printf("]");
+};
+
+void incoming_custom_target(struct Node *a, struct Node *b){
+	int match;
+	int count = 0;
+	printf("[[\"%s\", [ ", b->data.name);
+	for(int i = 0; i < a->incoming_len; i++){
+		if(a->incoming[i].relation == 'c'){
+			match = compare(a->incoming[i].custom, b);
+			if(match){
+				if(count != 0){
+					printf(",");
+				}
+				printf("\"%s\"", a->incoming[i].source->data.name);
+				count++;
+			}
+		}
+	}
+	printf("]]]\n");
+};
+
 void custom_target(struct Node *a, struct Node *b){
 	int match;
 	int count = 0;
-	printf("{\"%s\": [ ", b->data.name);
+	printf("[[\"%s\", [ ", b->data.name);
 	for(int i = 0; i < a->outgoing_len; i++){
 		if(a->outgoing[i].relation == 'c'){
 			match = compare(a->outgoing[i].custom, b);
@@ -244,5 +296,5 @@ void custom_target(struct Node *a, struct Node *b){
 			}
 		}
 	}
-	printf("]}\n");
+	printf("]]]\n");
 }

@@ -24,22 +24,29 @@ function requestHandler(req, res){
 				DB = database;
 				res.end();
 			});
-		}
-		else if(req.url === '/save'){
-			DB.save(data);
-			res.end();
-		}
-		else if(req.url === '/saveall'){
-			DB.saveAll(data);
-			res.end();
-		}
-		else if(req.url === '/query'){
-			DB.query(data, function(result){
-				res.end(JSON.stringify(result));
-			})
-		}
-		else if(req.url === '/close'){
-			DB.stop();
+		} else {
+			if(DB === undefined){
+				console.log('No DB object available, trying opening the database first.');
+				res.end();
+			}
+			else if(req.url === '/save'){
+				DB.save(data, function(){
+					res.end();
+				});
+			}
+			else if(req.url === '/saveall'){
+				DB.saveAll(data);
+				res.end();
+			}
+			else if(req.url === '/query'){
+				DB.query(data, function(result){
+					res.end(JSON.stringify(result));
+				})
+			}
+			else if(req.url === '/close'){
+				DB.stop();
+			}
+			
 		}
 
 	});

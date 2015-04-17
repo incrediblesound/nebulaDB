@@ -35,6 +35,29 @@ function createQuery(entity, idx){
 		linkName, targetVarName;
 	targetNode = _.first(entity.target);
 	sourceNode = _.first(entity.source);
+	if(sourceNode.content === '*'){
+		if(LIBRARY[targetNode.content] === undefined){
+			add('printf("{\\"Node not found\\": \\"'+targetNode.content+'\\"}");');
+			return;
+		}
+		targetVarName = LIBRARY[targetNode.content].varName
+		if(entity.relation.type === '*'){
+			add('all_incoming_relations(&'+targetVarName+');\n');
+			return;
+		}
+		else if(entity.relation.type === '->'){
+			add('all_incoming_targets(&'+targetVarName+');\n');
+			return;
+		} else {
+			linkName = LIBRARY[entity.relation.type].varName;
+			add('incoming_custom_target(&'+targetVarName+', &'+linkName+');\n')
+			return;
+		}
+	}
+	else if(LIBRARY[sourceNode.content] === undefined){
+		add('printf("{\\"Node not found\\": \\"'+sourceNode.content+'\\"}");');
+		return;
+	}
 	sourceVarName = LIBRARY[sourceNode.content].varName;
 	if(targetNode.content === '*' && entity.relation.type === '*'){
 		add('all_relations(&'+sourceVarName+');\n');
@@ -48,6 +71,10 @@ function createQuery(entity, idx){
 			add('custom_target(&'+sourceVarName+', &'+linkName+');\n');
 		}
 	} else {
+		if(LIBRARY[targetNode.content] === undefined){
+			add('printf("{\\"Node not found\\": \\"'+targetNode.content+'\\"}");');
+			return;
+		}
 		targetVarName = LIBRARY[targetNode.content].varName
 		relationFunction = lib.relationToFunc[entity.relation.type];
 		if(relationFunction !== undefined){
@@ -115,6 +142,11 @@ function writeValueEntity(value){
 };
 
 function addRelation(options){
+	if(LIBRARY[options.source] !== undefined &&
+	   LIBRARY[options.source][options.target] !== undefined &&
+	   LIBRARY[options.source][options.target][options.relation] !== undefined){
+		return;
+	}
 	var relationType = lib.relationToType(options.relation);
 	if(relationType === 'c'){
 		var customName = createCustomRelation(options.relation);
@@ -131,6 +163,7 @@ function addRelation(options){
 		LIBRARY[options.relation].link = customName;
 	}
 	LIBRARY[options.source] = LIBRARY[options.source] || {};
+	LIBRARY[options.target] = LIBRARY[options.target] || {};
 	LIBRARY[options.source][options.target] = LIBRARY[options.source][options.target] || {};
 	LIBRARY[options.source][options.target][options.relation] = relationName;
 	add('add_outgoing_link(&'+options.source+', &'+relationName+');\n');

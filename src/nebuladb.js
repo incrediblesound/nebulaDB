@@ -15,7 +15,8 @@ var DB = function(){
 DB.prototype.init = function(options, cb){
 	this.db = options.db;
 	this.tail = '\n};\n';
-	if(options.isNew){
+	var isFile = fs.existsSync('../'+this.db+'.c');
+	if(!isFile){
 		fs.writeFileSync(this.db+'.c', '#include \"src/core.h\"\n\nint main(){\n')
 	} else {
 		var lib = fs.readFileSync(this.db+'.json');
@@ -46,13 +47,17 @@ DB.prototype.process_save = function(query){
 		fs.appendFile(self.db+'.c', code, function(){
 			stats = fs.statSync(self.db+'.c')
 			self.length = stats.size;
-			self.busy = false;
+			self.library.DB_SIZE = self.length || 0;
+			fs.writeFile(self.db+'.json', JSON.stringify(self.library), function(err){
+				self.busy = false;
+			})
 		});
 	})
 }
 
-DB.prototype.save = function(query){
+DB.prototype.save = function(query, cb){
 	this.stack.push([query, null, false])
+	cb();
 }
 
 DB.prototype.saveAll = function(array){
@@ -71,14 +76,12 @@ DB.prototype.process_query = function(query, cb){
 	var self = this;
 	query.unshift('?');
 	this.parse(query, function(code){
-		console.log(code);
 		fs.truncateSync(self.db+'.c', self.length);
 		fs.appendFileSync(self.db+'.c', code+self.tail);
 		exec('gcc '+self.db+'.c -o out',{maxBuffer: 1024 * 10000}, function(err){
 			if(err) console.log('COMPILE ERROR: ', err);
 
 			exec('./out',{maxBuffer: 1024 * 10000}, function(err, stdOut){
-				console.log(err, stdOut);
 				var result;
 				if(_.isNumber(stdOut)){
 					var truthy = parseInt(stdOut);
@@ -106,15 +109,7 @@ DB.prototype.start = function(){
 				self.process_save(data[0]);
 			}
 		}
-	})
-}
-
-DB.prototype.stop = function(){
-	clearInterval(this.interval);
-	this.library.DB_SIZE = this.length || 0;
-	fs.writeFile(this.db+'.json', JSON.stringify(this.library), function(err){
-		console.log(err);
-	})
+	}, 10)
 }
 
 var nebuladb = {
