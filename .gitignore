@@ -5,3 +5,5 @@ out
 a.out
 .DS_Store
 testdb.*
+data/*.c
+data/*.json

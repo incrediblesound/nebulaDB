@@ -13,9 +13,10 @@ var DB = function(){
 };
 
 DB.prototype.init = function(options, cb){
-	this.db = options.db;
+	this.db = './data/'+options.db;
 	this.tail = '\n};\n';
-	var isFile = fs.existsSync('../'+this.db+'.c');
+	var isFile = fs.existsSync(this.db+'.c');
+
 	if(!isFile){
 		fs.writeFileSync(this.db+'.c', '#include \"src/core.h\"\n\nint main(){\n')
 	} else {
@@ -47,7 +48,7 @@ DB.prototype.process_save = function(query){
 		fs.appendFile(self.db+'.c', code, function(){
 			stats = fs.statSync(self.db+'.c')
 			self.length = stats.size;
-			self.library.DB_SIZE = self.length || 0;
+			self.library.DB_SIZE = self.length;
 			fs.writeFile(self.db+'.json', JSON.stringify(self.library), function(err){
 				self.busy = false;
 			})
