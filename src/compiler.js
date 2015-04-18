@@ -132,11 +132,12 @@ function writeValueEntity(value){
 	add(varName+'.incoming = (struct Link *) malloc(sizeof(struct Link));\n');
 	add(varName+'.type = \''+lib.valueToType[value.type]+'\';\n');
 	add('union Data '+dataName+';\n');
-	if(value.type === 'string'){
-		add(dataName+'.name = "'+primitiveValue+'";\n');
-	} else {
-		add(dataName+'.num = '+primitiveValue+';\n');
-	}
+	// if(value.type === 'string'){
+	add(dataName+'.name = "'+primitiveValue+'";\n');
+	// } 
+	// else {
+	// 	add(dataName+'.num = '+primitiveValue+';\n');
+	// }
 	add(varName+'.data = '+dataName+';\n');
 	LIBRARY[value.content]["varName"] = varName;
 };

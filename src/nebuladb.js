@@ -18,7 +18,7 @@ DB.prototype.init = function(options, cb){
 	var isFile = fs.existsSync(this.db+'.c');
 
 	if(!isFile){
-		fs.writeFileSync(this.db+'.c', '#include \"src/core.h\"\n\nint main(){\n')
+		fs.writeFileSync(this.db+'.c', '#include \"core.h\"\n\nint main(){\n')
 	} else {
 		var lib = fs.readFileSync(this.db+'.json');
 		lib = JSON.parse(lib);
