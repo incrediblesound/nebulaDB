@@ -71,7 +71,7 @@ The save method saves a record to the database. The saveAll method is basically 
 ```javascript
 db.query([a,b,c], callback)
 ``` 
-The query method tests the database using the given query and passes the result into the callack. There are currently five types of queries:
+The query method tests the database using the given query and passes the result into the callack. There are currently eight types of queries:
 ```javascript
 [a,  b, c] // does item a have relation b to item c -> boolean
 [a, ->, c] // does item a have state c -> boolean
