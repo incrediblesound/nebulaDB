@@ -5,5 +5,6 @@ out
 a.out
 .DS_Store
 testdb.*
-data/*.c
+data/*.neb
 data/*.json
+test2.js

@@ -10,7 +10,7 @@ var headers = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "POST",
   "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10 // Seconds.
+  "access-control-max-age": 60 // Seconds.
 };
 
 server.listen(port, ip);

@@ -2,6 +2,7 @@ var parser = require('./parser.js');
 var _ = require('./lib/helpers.js')
 var compiler = require('./compiler.js');
 var fs = require('fs');
+var record = require('./record.js');
 var exec = require('child_process').exec;
 
 var DB = function(){
@@ -15,15 +16,17 @@ var DB = function(){
 DB.prototype.init = function(options, cb){
 	this.db = './data/'+options.db;
 	this.tail = '\n};\n';
-	var isFile = fs.existsSync(this.db+'.c');
+	var isFile = fs.existsSync(this.db+'_0.neb');
 
 	if(!isFile){
-		fs.writeFileSync(this.db+'.c', '#include \"core.h\"\n\nint main(){\n')
+		this.library.currentIndex = 0;
+		this.library.currentPage = 0;
+		this.library.name = options.db;
 	} else {
 		var lib = fs.readFileSync(this.db+'.json');
 		lib = JSON.parse(lib);
-		this.length = lib.DB_SIZE;
-		compiler.loadLibrary(lib);
+		this.library = lib;
+		// compiler.loadLibrary(lib);
 	}
 	cb();
 }
@@ -44,21 +47,17 @@ DB.prototype.parse = function(query, cb){
 DB.prototype.process_save = function(query){
 	this.busy = true;
 	var self = this;
-	this.parse(query, function(code){
-		fs.appendFile(self.db+'.c', code, function(){
-			stats = fs.statSync(self.db+'.c')
-			self.length = stats.size;
-			self.library.DB_SIZE = self.length;
-			fs.writeFile(self.db+'.json', JSON.stringify(self.library), function(err){
-				self.busy = false;
-			})
-		});
-	})
+	record.writeEntry(query, 
+					  this.library.currentIndex, 
+					  this.library, function(index){
+		self.library.currentIndex = index;
+		fs.writeFileSync(self.db+'.json', JSON.stringify(self.library));
+	});
+	this.busy = false;
 }
 
-DB.prototype.save = function(query, cb){
+DB.prototype.save = function(query){
 	this.stack.push([query, null, false])
-	cb();
 }
 
 DB.prototype.saveAll = function(array){
@@ -73,30 +72,21 @@ DB.prototype.query = function(query, cb){
 }
 
 DB.prototype.process_query = function(query, cb){
-	this.busy = true;
 	var self = this;
-	query.unshift('?');
-	this.parse(query, function(code){
-		fs.truncateSync(self.db+'.c', self.length);
-		fs.appendFileSync(self.db+'.c', code+self.tail);
-		exec('gcc '+self.db+'.c -o out',{maxBuffer: 1024 * 10000}, function(err){
-			if(err) console.log('COMPILE ERROR: ', err);
+	this.busy = true;
+	if(query[0] === '*'){
 
-			exec('./out',{maxBuffer: 1024 * 10000}, function(err, stdOut){
-				var result;
-				if(_.isNumber(stdOut)){
-					var truthy = parseInt(stdOut);
-					result = {hasState: truthy === 1 ? true : false}
-				} else {
-					result = JSON.parse(stdOut);
-				}
-				cb(result);
-				fs.truncate(self.db+'.c', self.length, function(){
-					self.busy = false;
-				});
-			})
-		});
-	})
+	}
+	else if(query[2] === '*'){
+
+	}
+	else if(query[1] !== '->'){
+		var hasRelation = record.checkCustomRelation(query, this.library);
+	} else {
+		var hasRelation = record.checkSimpleRelation(query, this.library);
+	}
+	cb(hasRelation);
+	this.busy = false;
 }
 
 DB.prototype.start = function(){
@@ -114,9 +104,9 @@ DB.prototype.start = function(){
 }
 
 var nebuladb = {
-	create: function(data, cb){
+	create: function(name, cb){
 		var db = new DB();
-		db.init({db: data.name, isNew: data.isNew}, function(){
+		db.init({ db: name }, function(){
 			db.start();
 			cb(db);
 		});
