@@ -57,15 +57,15 @@ db.init({name: "dbname"})
 ```
 This method creates a new database with the name "dbname" and returns a nebuladb instance. If this is the first init, a c file and a json file will be created in the data directory, otherwise nebula will try to load previously saved data for this database. This method is not used directly, but is accessed via the node_nebula module's open method.
 ```javascript
-db.save([a, b, c])
-db.saveAll([[a,b,c],
-	    [a,b,c],
-	    [a,b,c]
+db.save('a b c')
+db.saveAll(['a b c',
+	    'a b c',
+	    'a b c'
 	   ])
 ```
 The save method saves a record to the database. The saveAll method is basically the same, but it takes an array of records and pushes them all into the queue.
 ```javascript
-db.query([a,b,c], callback)
+db.query('a b c', callback)
 ``` 
 The query method tests the database using the given query and passes the result into the callack. There are currently eight types of queries:
 ```javascript
