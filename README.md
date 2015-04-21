@@ -21,36 +21,32 @@ NebulaDB uses a simple graph based schema that looks like this:
 ```
 Entering three strings in this way creates three nodes in the database and sets up a special (Node)-[Link]-(Node) relationship between them. You can also use the reserved symbol '->' in the relation position to indicate that the source node has the state indicated by the target node, for example:
 ```javascript
-[ 'john', '->', 'admin']
-[ 'john', '->', 'user']
-[ 'john', 'first_name', 'John']
+'john -> admin'
+'john -> user'
+'john first_name John'
 ```
-This symbol denotes transitive equality, which means:
+This symbol '->' denotes a simple state. It is used for boolean properties, in other words properties that a node either has or does not have.
 ```javascript
-// if
-["John","->","user"]
-// and
-["user","->","limited_access"]
-// then this query:
-["John","->","limited_access"]
-// will return: { hasState: true }
+db.save("John -> admin");
+db.save("Mary -> user");
+db.query("Mary -> admin"); // returns false
 ```
 There are two ways to query the database. The first way is to simply query a pattern. The database will response with a boolean that tell you whether or not the pattern exists in the database.
 ```javascript
-['john','->','admin'] //=> { hasState: true }
-['john','->','founder'] //=> { hasState: false }
+'john -> admin' //=> true
+'john -> founder' //=> false
 ```
 The second way to query is by using an asterisk to indicate which kinds of data you want to see. So far there are three available patterns:
 ```javascript
-['john','->','*'] 
+db.query('john -> *')
 // returns array of simple states: { simpleStates: ['admin','user'] }
-['john','first_name','*']
+db.query('john first_name *')
 // returns the target pointed to by the node in the relation position: { first_name: ["John"] }
-['john','*','*']  
+db.query('john * *')
 // returns hash of all target states: { first_name: ['John'], hasState: ['admin'] }
-['*','->','admin']
+db.query('* -> admin')
 // returns array of all states that obtain the admin state: { simpleStates: ['john'] }
-['*','*','30']
+db.query('* * 30')
 // returns hash of all source states: { 'age': ['john'], 'simpleState': ['old'] }
 ```
 

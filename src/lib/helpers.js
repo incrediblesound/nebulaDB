@@ -32,7 +32,7 @@ function processValue(val){
 function noEmpties(arr){
 	var result = [];
 	forEach(arr, function(el){
-		if(!!el){
+		if(!!el && el !== ' '){
 			result.push(el);
 		}
 	})

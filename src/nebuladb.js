@@ -1,6 +1,5 @@
-var parser = require('./parser.js');
+var lexer = require('./lexer.js');
 var _ = require('./lib/helpers.js')
-var compiler = require('./compiler.js');
 var fs = require('fs');
 var record = require('./record.js');
 var exec = require('child_process').exec;
@@ -45,6 +44,7 @@ DB.prototype.parse = function(query, cb){
 }
 
 DB.prototype.process_save = function(query){
+	query = lexer(query);
 	this.busy = true;
 	var self = this;
 	record.writeEntry(query, 
@@ -68,6 +68,7 @@ DB.prototype.saveAll = function(array){
 }
 
 DB.prototype.query = function(query, cb){
+	query = lexer(query);
 	this.stack.push([query, cb, true]);
 }
 
