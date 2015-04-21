@@ -79,7 +79,12 @@ DB.prototype.process_query = function(query, cb){
 
 	}
 	else if(query[2] === '*'){
-
+		if(query[1] === '*'){
+			var outgoing = record.allOutgoing(query[0], this.library);
+			cb(outgoing);
+			this.busy = false;
+			return;
+		}
 	}
 	else if(query[1] !== '->'){
 		var hasRelation = record.checkCustomRelation(query, this.library);

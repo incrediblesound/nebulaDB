@@ -10,6 +10,7 @@ var fs = require('fs');
 */
 NODE_OUTGOING = 3;
 NODE_INCOMING = 2;
+NODE_NAME = 1;
 LINK_TYPE = 1;
 LINK_OUTGOING = 3;
 LINK_CUSTOM = 4;
@@ -19,7 +20,7 @@ var fetchEntry = function(index, name){
 	var buffer = fs.readFileSync('./data/'+name+'_'+page+'.neb');
 	var file = buffer.toString(), entry;
 	file = file.split('//entry');
-	entry = file[index+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
+	entry = file[(index % ((page > 0 ? page : 1)*1000) )+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
 	return entry;
 }
 
@@ -71,20 +72,42 @@ var checkCustomRelation = function(query, library){
 	return result;
 }
 
+var allOutgoing = function(sourceName, library){
+	var result = {}, link, entry, custom;
+	var sourceIndex = library[ sourceName ]
+	var sourceData = fetchEntry(sourceIndex, library.name);
+	var indexArray = sourceData[ NODE_OUTGOING ].split(',');
+	forEach(indexArray, function(outgoingIndex){
+		link = fetchEntry(outgoingIndex, library.name);
+		if(link[ LINK_TYPE ] === 'e'){
+			entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
+			result['simpleStates'] = result['simpleStates'] || [];
+			result['simpleStates'].push(entry[ NODE_NAME ]);
+		}
+		else if(link[ LINK_TYPE ] === 'c'){
+			entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
+			custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
+			result[custom[ NODE_NAME ]] = result[custom[ NODE_NAME ]] || [];
+			result[custom[ NODE_NAME ]].push(entry[ NODE_NAME ]);
+		}
+	})
+	return result;
+}
+
 var addOutgoing = function(updateIndex, outgoingIndex, name){
 	updateIndex = parseInt(updateIndex);
 	var page = getPage(updateIndex);
 	var buffer = fs.readFileSync('./data/'+name+'_'+page+'.neb');
 	var file = buffer.toString(), entry;
 	file = file.split('//entry');
-	entry = file[updateIndex+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
+	entry = file[(updateIndex % ((page > 0 ? page : 1)*1000) )+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
 	if(entry[ NODE_OUTGOING ].length){
 		entry[ NODE_OUTGOING ] += ','+outgoingIndex;
 	} else {
 		entry[ NODE_OUTGOING ] += outgoingIndex;
 	}
 	entry = entry.join('<>');
-	file[updateIndex+1] = entry;
+	file[(updateIndex % ((page > 0 ? page : 1)*1000) )+1] = entry;
 	file = file.join('//entry');
 	fs.writeFileSync('./data/'+name+'_'+page+'.neb', file);
 };
@@ -95,20 +118,19 @@ var addIncoming = function(updateIndex, incomingIndex, name){
 	var buffer = fs.readFileSync('./data/'+name+'_'+page+'.neb');
 	var file = buffer.toString(), entry;
 	file = file.split('//entry');
-	entry = file[updateIndex+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
+	entry = file[(updateIndex % ((page > 0 ? page : 1)*1000) )+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
 	if(entry[ NODE_INCOMING ].length){
 		entry[ NODE_INCOMING ] += ','+incomingIndex;
 	} else {
 		entry[ NODE_INCOMING ] += incomingIndex;
 	}
 	entry = entry.join('<>');
-	file[updateIndex+1] = entry;
+	file[(updateIndex % ((page > 0 ? page : 1)*1000) )+1] = entry;
 	file = file.join('//entry');
 	fs.writeFileSync('./data/'+name+'_'+page+'.neb', file);
 };
 
 var writeEntry = function(query, index, library, cb){
-	console.log(query);
 	var sourceBody, targetBody, relationBody, customRelation;
 	var sourceIndex = library[query[0]];
 	var targetIndex = library[query[2]];
@@ -148,7 +170,7 @@ var writeEntry = function(query, index, library, cb){
 		sourceBody.outgoing.push(relationIndex);
 	}
 	if(targetBody === undefined){
-		addIncoming(targetIndex, sourceIndex, library.name);
+		addIncoming(targetIndex, relationIndex, library.name);
 	} else {
 		targetBody.incoming.push(relationIndex);
 	}
@@ -219,5 +241,6 @@ module.exports = {
 	writeEntry: writeEntry,
 	fetchEntry: fetchEntry,
 	checkSimpleRelation: checkSimpleRelation,
-	checkCustomRelation: checkCustomRelation
+	checkCustomRelation: checkCustomRelation,
+	allOutgoing: allOutgoing
 };
