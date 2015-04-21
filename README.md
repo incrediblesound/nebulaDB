@@ -64,9 +64,9 @@ db.save('a b c')
 db.saveAll(['a b c',
 	    	'a b c',
 	    	'a b c'
-	   	])
+	   		])
 ```
-The save method saves a record to the database. The saveAll method is basically the same, but it takes an array of records and pushes them all into the queue. Querys in string form will be parsed into arrays for processing, but if any of the terms contains spaces you can use the array format to define the divisions between source, relation and target yourself.
+The save method saves a record to the database. All non-existent nodes will be created. The saveAll method takes an array of records and pushes them all into the queue. Queries in string form will be parsed into arrays for processing, but if any of the terms contains spaces you can use array format to define the divisions between source, relation and target.
 ```javascript
 db.save('Dave -> user');
 db.save(['Dave', 'comment', 'This board is too negative!']);
