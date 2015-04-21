@@ -82,6 +82,3 @@ The query method tests the database using the given query and passes the result 
 [*, ->, c] // what are all the states that obtain state c
 [*,  b, c] // what item(s) have relation b to c
 ```
-How Does it Work?
------------------
-NebulaDB manages a c file that is full of structs that have arrays of pointers to links. When you save a query new structs are added to the file along with c functions that configure the links. When you query the data, the function that corresponds to your query is appended to the c file, the file is compiled and the output is parsed into JSON downstream. NebulaDB also carries an in-memory hash of node names to variable names which is saved to disk after every write. While this design undoubtedly has drawbacks, the simple format is fun and easy to use, and I have been surprised at how fast it is for small projects.
