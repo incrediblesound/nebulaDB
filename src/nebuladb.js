@@ -73,23 +73,38 @@ DB.prototype.query = function(query, cb){
 }
 
 DB.prototype.process_query = function(query, cb){
-	var self = this;
+	var self = this, incoming, outgoing, hasRelation;
 	this.busy = true;
 	if(query[0] === '*'){
-
+		if(query[1] === '*'){
+			incoming = record.allIncoming(query[2], this.library);
+		}
+		else if(query[1] !== '->'){
+			incoming = record.customIncoming(query[2], query[1], this.library);
+		} else {
+			incoming = record.incomingSimple(query[2], this.library);
+		}
+		cb(incoming);
+		this.busy = false;
+		return;
 	}
 	else if(query[2] === '*'){
 		if(query[1] === '*'){
-			var outgoing = record.allOutgoing(query[0], this.library);
-			cb(outgoing);
-			this.busy = false;
-			return;
+			outgoing = record.allOutgoing(query[0], this.library);
 		}
+		else if(query[1] !== '->'){
+			outgoing = record.customOutgoing(query[0], query[1], this.library);	
+		} else {
+			outgoing = record.outgoingSimple(query[0], this.library);
+		}
+		cb(outgoing);
+		this.busy = false;
+		return;
 	}
 	else if(query[1] !== '->'){
-		var hasRelation = record.checkCustomRelation(query, this.library);
+		hasRelation = record.checkCustomRelation(query, this.library);
 	} else {
-		var hasRelation = record.checkSimpleRelation(query, this.library);
+		hasRelation = record.checkSimpleRelation(query, this.library);
 	}
 	cb(hasRelation);
 	this.busy = false;
@@ -107,6 +122,14 @@ DB.prototype.start = function(){
 			}
 		}
 	}, 10)
+}
+
+DB.prototype.stop = function(){
+	clearInterval(this.interval);
+};
+DB.prototype.lazyStop = function(){
+	while(this.stack.length){}
+	this.stop();
 }
 
 var nebuladb = {

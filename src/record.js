@@ -13,6 +13,7 @@ NODE_INCOMING = 2;
 NODE_NAME = 1;
 LINK_TYPE = 1;
 LINK_OUTGOING = 3;
+LINK_INCOMING = 2;
 LINK_CUSTOM = 4;
 var fetchEntry = function(index, name){
 	index = parseInt(index);
@@ -93,6 +94,98 @@ var allOutgoing = function(sourceName, library){
 	})
 	return result;
 }
+
+var allIncoming = function(targetName, library){
+	var result = {}, link, entry, custom;
+	var targetIndex = library[ targetName ]
+	var targetData = fetchEntry(targetIndex, library.name);
+	var indexArray = targetData[ NODE_INCOMING ].split(',');
+	forEach(indexArray, function(sourceIndex){
+		link = fetchEntry(sourceIndex, library.name);
+		if(link[ LINK_TYPE ] === 'e'){
+			entry = fetchEntry(link[ LINK_INCOMING ], library.name);
+			result['simpleStates'] = result['simpleStates'] || [];
+			result['simpleStates'].push(entry[ NODE_NAME ]);
+		}
+		else if(link[ LINK_TYPE ] === 'c'){
+			entry = fetchEntry(link[ LINK_INCOMING ], library.name);
+			custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
+			result[custom[ NODE_NAME ]] = result[custom[ NODE_NAME ]] || [];
+			result[custom[ NODE_NAME ]].push(entry[ NODE_NAME ]);
+		}
+	})
+	return result;
+}
+
+var customOutgoing = function(sourceName, customName, library){
+	var result = {}, link, entry, custom;
+	result[ customName ] = [];
+	var sourceIndex = library[ sourceName ]
+	var sourceData = fetchEntry(sourceIndex, library.name);
+	var indexArray = sourceData[ NODE_OUTGOING ].split(',');
+	forEach(indexArray, function(outgoingIndex){
+		link = fetchEntry(outgoingIndex, library.name);
+		if(link[ LINK_TYPE ] === 'c'){
+			entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
+			custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
+			if(custom[ NODE_NAME ] === customName){
+				result[ customName ].push(entry[ NODE_NAME ]);
+			}
+		}
+	})
+	return result;
+};
+
+var customIncoming = function(targetName, customName, library){
+	var result = {}, link, entry, custom;
+	result[ customName ] = [];
+	var targetIndex = library[ targetName ]
+	var targetData = fetchEntry(targetIndex, library.name);
+	var indexArray = targetData[ NODE_INCOMING ].split(',');
+	forEach(indexArray, function(incomingIndex){
+		link = fetchEntry(incomingIndex, library.name);
+		if(link[ LINK_TYPE ] === 'c'){
+			entry = fetchEntry(link[ LINK_INCOMING ], library.name);
+			custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
+			if(custom[ NODE_NAME ] === customName){
+				result[ customName ].push(entry[ NODE_NAME ]);
+			}
+		}
+	})
+	return result;
+};
+
+var outgoingSimple = function(sourceName, library){
+	var result = {}, link, entry, custom;
+	result[ 'simpleStates'] = [];
+	var sourceIndex = library[ sourceName ]
+	var sourceData = fetchEntry(sourceIndex, library.name);
+	var indexArray = sourceData[ NODE_OUTGOING ].split(',');
+	forEach(indexArray, function(outgoingIndex){
+		link = fetchEntry(outgoingIndex, library.name);
+		if(link[ LINK_TYPE ] === 'e'){
+			entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
+			result['simpleStates'].push(entry[ NODE_NAME ]);
+		}
+	})
+	return result;
+};
+
+var incomingSimple = function(targetName, library){
+	var result = {}, link, entry, custom;
+	result[ 'simpleStates'] = [];
+	var targetIndex = library[ targetName ]
+	var targetData = fetchEntry(targetIndex, library.name);
+	var indexArray = targetData[ NODE_INCOMING ].split(',');
+	forEach(indexArray, function(incomingIndex){
+		link = fetchEntry(incomingIndex, library.name);
+		if(link[ LINK_TYPE ] === 'e'){
+			entry = fetchEntry(link[ LINK_INCOMING ], library.name);
+			result['simpleStates'].push(entry[ NODE_NAME ]);
+		}
+	})
+	return result;
+};
 
 var addOutgoing = function(updateIndex, outgoingIndex, name){
 	updateIndex = parseInt(updateIndex);
@@ -242,5 +335,10 @@ module.exports = {
 	fetchEntry: fetchEntry,
 	checkSimpleRelation: checkSimpleRelation,
 	checkCustomRelation: checkCustomRelation,
-	allOutgoing: allOutgoing
+	allOutgoing: allOutgoing,
+	customOutgoing: customOutgoing,
+	outgoingSimple: outgoingSimple,
+	allIncoming: allIncoming,
+	customIncoming: customIncoming,
+	incomingSimple: incomingSimple
 };
