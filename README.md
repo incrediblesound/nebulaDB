@@ -1,6 +1,6 @@
 NebulaDB
 ======
-NebulaDB started out as a logic programming language but I decided to make it into a database because it would be my first, and there seemed to be many limitations of a graph based logic programming language. I am currently migrating the code base from using a compiled c data storage format, which was very slow, to using text-based storage, so some features may be missing in the interim.    
+NebulaDB is a simple and intuitive graph database with a minimalist schema.    
 
 NebulaDB runs on a Node server. There is a Node.js module for interfacing with the NebulaDB server that can be found [here](https://github.com/incrediblesound/node-nebula). To run this database, clone the repository or download from npm:
 ```shell
