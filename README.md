@@ -59,9 +59,9 @@ This method creates a new database with the name "dbname" and returns a nebuladb
 ```javascript
 db.save('a b c')
 db.saveAll(['a b c',
-	    'a b c',
-	    'a b c'
-	   ])
+	    	'a b c',
+	    	'a b c'
+	   	])
 ```
 The save method saves a record to the database. The saveAll method is basically the same, but it takes an array of records and pushes them all into the queue.
 ```javascript
