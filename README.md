@@ -50,12 +50,15 @@ db.query('* * 30')
 // returns hash of all source states: { 'age': ['john'], 'simpleState': ['old'] }
 ```
 
-Methods
--------
+Initialization
+--------------
 ```javascript
 db.init({name: "dbname"})
 ```
 This method creates a new database with the name "dbname" and returns a nebuladb instance. If this is the first init, a json file will be created in the data directory, otherwise nebula will try to load previously saved data for this database. This method is not used directly, but is accessed via the node_nebula module's open method.
+
+Saving
+------
 ```javascript
 db.save('a b c')
 db.saveAll(['a b c',
@@ -63,7 +66,13 @@ db.saveAll(['a b c',
 	    	'a b c'
 	   	])
 ```
-The save method saves a record to the database. The saveAll method is basically the same, but it takes an array of records and pushes them all into the queue.
+The save method saves a record to the database. The saveAll method is basically the same, but it takes an array of records and pushes them all into the queue. Querys in string form will be parsed into arrays for processing, but if any of the terms contains spaces you can use the array format to define the divisions between source, relation and target yourself.
+```javascript
+db.save('Dave -> user');
+db.save(['Dave', 'comment', 'This board is too negative!']);
+```
+Querying
+--------
 ```javascript
 db.query('a b c', callback)
 ``` 
