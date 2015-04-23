@@ -87,3 +87,9 @@ The query method tests the database using the given query and passes the result 
 [*, ->, c] // what are all the states that obtain state c
 [*,  b, c] // what item(s) have relation b to c
 ```
+Editing
+-------
+```javascript
+db.removeLink('a b c');
+```
+The removeLink method removes a relationship between A and node B. Removing nodes isn't really an option in NebulaDB, but a node with nothing pointing to it is basically inaccessible until another node is updated or created with a connection to that node via its value.
