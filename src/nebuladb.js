@@ -9,7 +9,7 @@ var DB = function(){
 	this.stack = [];
 	this.busy = false;
 	this.interval;
-	this.library = {};
+	this.library = { nodes: {} };
 };
 
 DB.prototype.init = function(options, cb){
@@ -57,7 +57,7 @@ DB.prototype.process_save = function(query){
 }
 
 DB.prototype.save = function(query){
-	this.stack.push([query, null, false])
+	this.stack.push([query, null, 's'])
 }
 
 DB.prototype.saveAll = function(array){
@@ -68,11 +68,22 @@ DB.prototype.saveAll = function(array){
 }
 
 DB.prototype.query = function(query, cb){
+	this.stack.push([query, cb, 'q']);
+}
+
+DB.prototype.process_removeLink = function(query){
 	query = lexer(query);
-	this.stack.push([query, cb, true]);
+	this.busy = true;
+	record.removeLink(query, this.library);
+	this.busy = false;
+}
+
+DB.prototype.removeLink = function(query){
+	this.stack.push([query, null, 'r'])
 }
 
 DB.prototype.process_query = function(query, cb){
+	query = lexer(query);
 	var self = this, incoming, outgoing, hasRelation;
 	this.busy = true;
 	if(query[0] === '*'){
@@ -115,10 +126,14 @@ DB.prototype.start = function(){
 	this.interval = setInterval(function(){
 		if(self.stack.length && !self.busy){
 			var data = self.stack.shift();
-			if(data[2]){
+			if(data[2] === 'q'){
 				self.process_query(data[0], data[1])
-			} else {
+			} 
+			else if(data[2] === 's') {
 				self.process_save(data[0]);
+			}
+			else if(data[2] === 'r') {
+				self.process_removeLink(data[0]);
 			}
 		}
 	}, 10)

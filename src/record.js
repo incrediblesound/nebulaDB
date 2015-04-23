@@ -29,9 +29,9 @@ var checkSimpleRelation = function(query, library){
 	var souceIndex, targetIndex, relationIndex;
 	var sourceData, relNode, result = false;
 	var outgoing;
-	sourceIndex = library[query[0]];
-	targetIndex = library[query[2]];
-	relationIndex = library[query[1]];
+	sourceIndex = library.nodes[query[0]];
+	targetIndex = library.nodes[query[2]];
+	relationIndex = library.nodes[query[1]];
 	var sourceData = fetchEntry(sourceIndex, library.name);
 	var idxArray = sourceData[ NODE_OUTGOING ].split(',');
 	forEach(idxArray, function(index){
@@ -52,9 +52,9 @@ var checkCustomRelation = function(query, library){
 	var souceIndex, targetIndex, relationIndex;
 	var sourceData, relNode, result = false;
 	var custom, target;
-	sourceIndex = library[query[0]];
-	targetIndex = library[query[2]];
-	relationIndex = library[query[1]];
+	sourceIndex = library.nodes[query[0]];
+	targetIndex = library.nodes[query[2]];
+	relationIndex = library.nodes[query[1]];
 	var sourceData = fetchEntry(sourceIndex, library.name);
 	var idxArray = sourceData[ NODE_OUTGOING ].split(',');
 	forEach(idxArray, function(index){
@@ -75,7 +75,7 @@ var checkCustomRelation = function(query, library){
 
 var allOutgoing = function(sourceName, library){
 	var result = {}, link, entry, custom;
-	var sourceIndex = library[ sourceName ]
+	var sourceIndex = library.nodes[ sourceName ]
 	var sourceData = fetchEntry(sourceIndex, library.name);
 	var indexArray = sourceData[ NODE_OUTGOING ].split(',');
 	forEach(indexArray, function(outgoingIndex){
@@ -97,7 +97,7 @@ var allOutgoing = function(sourceName, library){
 
 var allIncoming = function(targetName, library){
 	var result = {}, link, entry, custom;
-	var targetIndex = library[ targetName ]
+	var targetIndex = library.nodes[ targetName ]
 	var targetData = fetchEntry(targetIndex, library.name);
 	var indexArray = targetData[ NODE_INCOMING ].split(',');
 	forEach(indexArray, function(sourceIndex){
@@ -120,7 +120,7 @@ var allIncoming = function(targetName, library){
 var customOutgoing = function(sourceName, customName, library){
 	var result = {}, link, entry, custom;
 	result[ customName ] = [];
-	var sourceIndex = library[ sourceName ]
+	var sourceIndex = library.nodes[ sourceName ]
 	var sourceData = fetchEntry(sourceIndex, library.name);
 	var indexArray = sourceData[ NODE_OUTGOING ].split(',');
 	forEach(indexArray, function(outgoingIndex){
@@ -139,7 +139,7 @@ var customOutgoing = function(sourceName, customName, library){
 var customIncoming = function(targetName, customName, library){
 	var result = {}, link, entry, custom;
 	result[ customName ] = [];
-	var targetIndex = library[ targetName ]
+	var targetIndex = library.nodes[ targetName ]
 	var targetData = fetchEntry(targetIndex, library.name);
 	var indexArray = targetData[ NODE_INCOMING ].split(',');
 	forEach(indexArray, function(incomingIndex){
@@ -158,7 +158,7 @@ var customIncoming = function(targetName, customName, library){
 var outgoingSimple = function(sourceName, library){
 	var result = {}, link, entry, custom;
 	result[ 'simpleStates'] = [];
-	var sourceIndex = library[ sourceName ]
+	var sourceIndex = library.nodes[ sourceName ]
 	var sourceData = fetchEntry(sourceIndex, library.name);
 	var indexArray = sourceData[ NODE_OUTGOING ].split(',');
 	forEach(indexArray, function(outgoingIndex){
@@ -174,7 +174,7 @@ var outgoingSimple = function(sourceName, library){
 var incomingSimple = function(targetName, library){
 	var result = {}, link, entry, custom;
 	result[ 'simpleStates'] = [];
-	var targetIndex = library[ targetName ]
+	var targetIndex = library.nodes[ targetName ]
 	var targetData = fetchEntry(targetIndex, library.name);
 	var indexArray = targetData[ NODE_INCOMING ].split(',');
 	forEach(indexArray, function(incomingIndex){
@@ -186,6 +186,21 @@ var incomingSimple = function(targetName, library){
 	})
 	return result;
 };
+
+var removeLink = function(query, library){
+	var sourceIndex, targetIndex, relationIndex;
+	if(query[1] === '->'){
+		relationIndex = getLinkIndex(query, library);
+	} else {
+		relationIndex = getCustomLinkIndex(query, library);
+	}
+	sourceIndex = library.nodes[query[0]];
+	targetIndex = library.nodes[query[2]];
+	removeOutgoing(sourceIndex, relationIndex, library.name);
+	removeIncoming(relationIndex, sourceIndex, library.name);
+	removeOutgoing(relationIndex, targetIndex, library.name);
+	removeIncoming(targetIndex, relationIndex, library.name);
+}
 
 var addOutgoing = function(updateIndex, outgoingIndex, name){
 	updateIndex = parseInt(updateIndex);
@@ -211,7 +226,7 @@ var addIncoming = function(updateIndex, incomingIndex, name){
 	var buffer = fs.readFileSync('./data/'+name+'_'+page+'.neb');
 	var file = buffer.toString(), entry;
 	file = file.split('//entry');
-	entry = file[(updateIndex % ((page > 0 ? page : 1)*1000) )+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
+	entry = file[(updateIndex % ((page > 0 ? page : 1)*1000) )+1].split('<>');
 	if(entry[ NODE_INCOMING ].length){
 		entry[ NODE_INCOMING ] += ','+incomingIndex;
 	} else {
@@ -223,18 +238,85 @@ var addIncoming = function(updateIndex, incomingIndex, name){
 	fs.writeFileSync('./data/'+name+'_'+page+'.neb', file);
 };
 
+var removeOutgoing = function(sourceIndex, outgoingIndex, name){
+	var page = getPage(sourceIndex);
+	var buffer = fs.readFileSync('./data/'+name+'_'+page+'.neb');
+	var file = buffer.toString(), entry;
+	file = file.split('//entry');
+	entry = file[(sourceIndex % ((page > 0 ? page : 1)*1000) )+1].split('<>');
+	var outgoing = entry[ NODE_OUTGOING ].split(',');
+	outgoing = removeFromArray(outgoing, ''+outgoingIndex);
+	entry[ NODE_OUTGOING ] = outgoing.join(',');
+	entry = entry.join('<>');
+	file[(sourceIndex % ((page > 0 ? page : 1)*1000) )+1] = entry;
+	file = file.join('//entry');
+	fs.writeFileSync('./data/'+name+'_'+page+'.neb', file);
+}
+
+var removeIncoming = function(sourceIndex, incomingIndex, name){
+	var page = getPage(sourceIndex);
+	var buffer = fs.readFileSync('./data/'+name+'_'+page+'.neb');
+	var file = buffer.toString(), entry;
+	file = file.split('//entry');
+	entry = file[(sourceIndex % ((page > 0 ? page : 1)*1000) )+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
+	var incoming = entry[ NODE_INCOMING ].split(',');
+	incoming = removeFromArray(incoming, ''+incomingIndex);
+	entry[ NODE_INCOMING ] = incoming.join(',');
+	entry = entry.join('<>');
+	file[(sourceIndex % ((page > 0 ? page : 1)*1000) )+1] = entry;
+	file = file.join('//entry');
+	fs.writeFileSync('./data/'+name+'_'+page+'.neb', file);
+}
+
+var getLinkIndex = function(query, library){
+	var sourceIndex, targetIndex, relationIndex, outgoingNode;
+	var result;
+	sourceIndex = library.nodes[query[0]];
+	targetIndex = library.nodes[query[2]];
+	relationIndex = library.nodes[query[1]];
+	sourceData = fetchEntry(sourceIndex, library.name);
+	// this should jump out of the loop once the index is found
+	forEach(sourceData[ NODE_OUTGOING ], function(outgoingIndex){
+		var outgoingNode = fetchEntry(outgoingIndex, library.name);
+		if(outgoingNode[ LINK_OUTGOING ] === ''+targetIndex){
+			result = outgoingIndex;
+		}
+	})
+	return result;
+}
+
+var getCustomLinkIndex = function(query, library){
+	var sourceIndex, targetIndex, relationIndex, outgoingNode;
+	var result;
+	sourceIndex = library.nodes[query[0]];
+	targetIndex = library.nodes[query[2]];
+	relationIndex = library.nodes[query[1]];
+	sourceData = fetchEntry(sourceIndex, library.name);
+	// this should jump out of the loop once the index is found
+	forEach(sourceData[ NODE_OUTGOING ], function(outgoingIndex){
+		var outgoingNode = fetchEntry(outgoingIndex, library.name);
+		if(outgoingNode[ LINK_TYPE ] === 'c'){
+			if(outgoingNode[ LINK_OUTGOING ] === ''+targetIndex &&
+			   outgoingNode[ LINK_CUSTOM ] === ''+relationIndex){
+				result = outgoingIndex;
+			}
+		}
+	})
+	return result;
+}
+
 var writeEntry = function(query, index, library, cb){
 	var sourceBody, targetBody, relationBody, customRelation;
-	var sourceIndex = library[query[0]];
-	var targetIndex = library[query[2]];
+	var sourceIndex = library.nodes[query[0]];
+	var targetIndex = library.nodes[query[2]];
 	var relationIndex;
 	if(query[1] !== '->'){
-		relationIndex = library[query[1]];
+		relationIndex = library.nodes[query[1]];
 		if(relationIndex === undefined){
 			customRelation = createEntry(query[1], index)
 			index++
 			relationBody = createLink(index, true, customRelation.index);
-			library[query[1]] = customRelation.index;
+			library.nodes[query[1]] = customRelation.index;
 			relationIndex = relationBody.index;
 		} else {
 			relationBody = createLink(index, true, relationIndex);
@@ -249,13 +331,13 @@ var writeEntry = function(query, index, library, cb){
 		sourceBody = createEntry(query[0], index);
 		index++;
 		sourceIndex = sourceBody.index;
-		library[query[0]] = sourceIndex;
+		library.nodes[query[0]] = sourceIndex;
 	}
 	if(targetIndex === undefined){
 		targetBody = createEntry(query[2], index);
 		index++;
 		targetIndex = targetBody.index;
-		library[query[2]] = targetIndex;
+		library.nodes[query[2]] = targetIndex;
 	}
 	if(sourceBody === undefined){
 		addOutgoing(sourceIndex, relationIndex, library.name);
@@ -317,6 +399,7 @@ var createLink = function(index, custom, customIndex){
 };
 
 function getPage(index){
+	index = index > 0 ? index : 1;
 	return Math.floor(index/1000);
 };
 
@@ -325,6 +408,16 @@ function forEach(arr, fn){
 		fn(arr[i], i);
 	}
 };
+
+function removeFromArray(array, item){
+	var result = [];
+	forEach(array, function(element){
+		if(element !== item){
+			result.push(element);
+		}
+	})
+	return result;
+}
 
 function isNumber(el){
 	return (parseInt(el) === parseInt(el));
@@ -340,5 +433,6 @@ module.exports = {
 	outgoingSimple: outgoingSimple,
 	allIncoming: allIncoming,
 	customIncoming: customIncoming,
-	incomingSimple: incomingSimple
+	incomingSimple: incomingSimple,
+	removeLink: removeLink
 };
