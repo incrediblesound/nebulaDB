@@ -1,6 +1,6 @@
 NebulaDB
 ======
-NebulaDB is a simple and intuitive graph database with a minimalist schema.    
+NebulaDB is a simple and intuitive graph database with a minimalist schema. DISCLAIMER: This is an experimental project. Records are saved to disk in a parseable text format via the node.js file system api. There are no hardcore optimizations and the code is not aware of how the kernel is managing (or not managing) the reads and writes. As a result this DB should not be used for serious production software. If you want to explore, hack, and help me improve it then please join the fun.
 
 NebulaDB runs on a Node server. There is a Node.js module for interfacing with the NebulaDB server that can be found [here](https://github.com/incrediblesound/node-nebula). To run this database, clone the repository or download from npm:
 ```shell
