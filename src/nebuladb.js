@@ -84,40 +84,53 @@ DB.prototype.removeLink = function(query){
 
 DB.prototype.process_query = function(query, cb){
 	query = lexer(query);
-	var self = this, incoming, outgoing, hasRelation;
+	var self = this;
+	var result;
 	this.busy = true;
 	if(query[0] === '*'){
 		if(query[1] === '*'){
-			incoming = record.allIncoming(query[2], this.library);
+			result = record.allIncoming(query[2], this.library);
 		}
 		else if(query[1] !== '->'){
-			incoming = record.customIncoming(query[2], query[1], this.library);
+			result = record.customIncoming(query[2], query[1], this.library);
 		} else {
-			incoming = record.incomingSimple(query[2], this.library);
+			result = record.incomingSimple(query[2], this.library);
 		}
-		cb(incoming);
+		if(result instanceof Error){
+			cb(result, null);
+		} else {
+			cb(null, result);
+		}
 		this.busy = false;
 		return;
 	}
 	else if(query[2] === '*'){
 		if(query[1] === '*'){
-			outgoing = record.allOutgoing(query[0], this.library);
+			result = record.allOutgoing(query[0], this.library);
 		}
 		else if(query[1] !== '->'){
-			outgoing = record.customOutgoing(query[0], query[1], this.library);	
+			result = record.customOutgoing(query[0], query[1], this.library);	
 		} else {
-			outgoing = record.outgoingSimple(query[0], this.library);
+			result = record.outgoingSimple(query[0], this.library);
 		}
-		cb(outgoing);
+		if(result instanceof Error){
+			cb(result, null);
+		} else {
+			cb(null, result);
+		}
 		this.busy = false;
 		return;
 	}
 	else if(query[1] !== '->'){
-		hasRelation = record.checkCustomRelation(query, this.library);
+		result = record.checkCustomRelation(query, this.library);
 	} else {
-		hasRelation = record.checkSimpleRelation(query, this.library);
+		result = record.checkSimpleRelation(query, this.library);
 	}
-	cb(hasRelation);
+	if(result instanceof Error){
+		cb(result, null);
+	} else {
+		cb(null, result);
+	}
 	this.busy = false;
 }
 

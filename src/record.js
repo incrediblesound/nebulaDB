@@ -15,13 +15,20 @@ LINK_TYPE = 1;
 LINK_OUTGOING = 3;
 LINK_INCOMING = 2;
 LINK_CUSTOM = 4;
+
 var fetchEntry = function(index, name){
 	index = parseInt(index);
 	var page = getPage(index);
 	var buffer = fs.readFileSync('./data/'+name+'_'+page+'.neb');
-	var file = buffer.toString(), entry;
+	var file = buffer.toString()
+	var entry;
 	file = file.split('//entry');
-	entry = file[(index % ((page > 0 ? page : 1)*1000) )+1].split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
+	var entryIndex = (index % ((page > 0 ? page : 1)*1000) )+1;
+	var rawEntry = file[entryIndex];
+	if(rawEntry === undefined){
+		return null;
+	}
+	entry = rawEntry.split('<>'); //[ '\n<:1:>\n', 'james', '', '0', '\n' ]
 	return entry;
 }
 
@@ -33,18 +40,20 @@ var checkSimpleRelation = function(query, library){
 	targetIndex = library.nodes[query[2]];
 	relationIndex = library.nodes[query[1]];
 	var sourceData = fetchEntry(sourceIndex, library.name);
-	var idxArray = sourceData[ NODE_OUTGOING ].split(',');
-	forEach(idxArray, function(index){
-		if(isNumber(index)){
-			relNode = fetchEntry(index, library.name);
-			if(relNode[ LINK_TYPE ] === 'e'){
-				outgoing = relNode[ LINK_OUTGOING ];
-				if(outgoing = targetIndex.toString()){
-					result = true;
+	if(defined(sourceData)){
+		var idxArray = sourceData[ NODE_OUTGOING ].split(',');
+		forEach(idxArray, function(index){
+			if(isNumber(index)){
+				relNode = fetchEntry(index, library.name);
+				if(defined(relNode) && relNode[ LINK_TYPE ] === 'e'){
+					outgoing = relNode[ LINK_OUTGOING ];
+					if(outgoing = targetIndex.toString()){
+						result = true;
+					}
 				}
 			}
-		}
-	})
+		})
+	}
 	return result;
 }
 
@@ -56,20 +65,22 @@ var checkCustomRelation = function(query, library){
 	targetIndex = library.nodes[query[2]];
 	relationIndex = library.nodes[query[1]];
 	var sourceData = fetchEntry(sourceIndex, library.name);
-	var idxArray = sourceData[ NODE_OUTGOING ].split(',');
-	forEach(idxArray, function(index){
-		if(isNumber(index)){
-			relNode = fetchEntry(index, library.name);
-			if(relNode[ LINK_TYPE ] === 'c'){
-				custom = relNode[ LINK_CUSTOM ];
-				target = relNode[ LINK_OUTGOING ];
-				if(custom === relationIndex.toString() &&
-				   target === targetIndex.toString()){
-					result = true;
+	if(defined(sourceData)){
+		var idxArray = sourceData[ NODE_OUTGOING ].split(',');
+		forEach(idxArray, function(index){
+			if(isNumber(index)){
+				relNode = fetchEntry(index, library.name);
+				if(defined(relNode) && relNode[ LINK_TYPE ] === 'c'){
+					custom = relNode[ LINK_CUSTOM ];
+					target = relNode[ LINK_OUTGOING ];
+					if(custom === relationIndex.toString() &&
+					   target === targetIndex.toString()){
+						result = true;
+					}
 				}
 			}
-		}
-	})
+		})
+	}
 	return result;
 }
 
@@ -77,21 +88,25 @@ var allOutgoing = function(sourceName, library){
 	var result = {}, link, entry, custom;
 	var sourceIndex = library.nodes[ sourceName ]
 	var sourceData = fetchEntry(sourceIndex, library.name);
-	var indexArray = sourceData[ NODE_OUTGOING ].split(',');
-	forEach(indexArray, function(outgoingIndex){
-		link = fetchEntry(outgoingIndex, library.name);
-		if(link[ LINK_TYPE ] === 'e'){
-			entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
-			result['simpleStates'] = result['simpleStates'] || [];
-			result['simpleStates'].push(entry[ NODE_NAME ]);
-		}
-		else if(link[ LINK_TYPE ] === 'c'){
-			entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
-			custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
-			result[custom[ NODE_NAME ]] = result[custom[ NODE_NAME ]] || [];
-			result[custom[ NODE_NAME ]].push(entry[ NODE_NAME ]);
-		}
-	})
+	if(defined(sourceData)){
+		var indexArray = sourceData[ NODE_OUTGOING ].split(',');
+		forEach(indexArray, function(outgoingIndex){
+			link = fetchEntry(outgoingIndex, library.name);
+			if(defined(link)){
+				if(link[ LINK_TYPE ] === 'e'){
+					entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
+					result['simpleStates'] = result['simpleStates'] || [];
+					result['simpleStates'].push(entry[ NODE_NAME ]);
+				}
+				else if(link[ LINK_TYPE ] === 'c'){
+					entry = fetchEntry(link[ LINK_OUTGOING ], library.name);
+					custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
+					result[custom[ NODE_NAME ]] = result[custom[ NODE_NAME ]] || [];
+					result[custom[ NODE_NAME ]].push(entry[ NODE_NAME ]);
+				}
+			}
+		})
+	}
 	return result;
 }
 
@@ -99,21 +114,25 @@ var allIncoming = function(targetName, library){
 	var result = {}, link, entry, custom;
 	var targetIndex = library.nodes[ targetName ]
 	var targetData = fetchEntry(targetIndex, library.name);
-	var indexArray = targetData[ NODE_INCOMING ].split(',');
-	forEach(indexArray, function(sourceIndex){
-		link = fetchEntry(sourceIndex, library.name);
-		if(link[ LINK_TYPE ] === 'e'){
-			entry = fetchEntry(link[ LINK_INCOMING ], library.name);
-			result['simpleStates'] = result['simpleStates'] || [];
-			result['simpleStates'].push(entry[ NODE_NAME ]);
-		}
-		else if(link[ LINK_TYPE ] === 'c'){
-			entry = fetchEntry(link[ LINK_INCOMING ], library.name);
-			custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
-			result[custom[ NODE_NAME ]] = result[custom[ NODE_NAME ]] || [];
-			result[custom[ NODE_NAME ]].push(entry[ NODE_NAME ]);
-		}
-	})
+	if(defined(targetData)){
+		var indexArray = targetData[ NODE_INCOMING ].split(',');
+		forEach(indexArray, function(sourceIndex){
+			link = fetchEntry(sourceIndex, library.name);
+			if(defined(link)){
+				if(link[ LINK_TYPE ] === 'e'){
+					entry = fetchEntry(link[ LINK_INCOMING ], library.name);
+					result['simpleStates'] = result['simpleStates'] || [];
+					result['simpleStates'].push(entry[ NODE_NAME ]);
+				}
+				else if(link[ LINK_TYPE ] === 'c'){
+					entry = fetchEntry(link[ LINK_INCOMING ], library.name);
+					custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
+					result[custom[ NODE_NAME ]] = result[custom[ NODE_NAME ]] || [];
+					result[custom[ NODE_NAME ]].push(entry[ NODE_NAME ]);
+				}
+			}
+		})
+	}
 	return result;
 }
 
@@ -144,10 +163,10 @@ var customIncoming = function(targetName, customName, library){
 	var indexArray = targetData[ NODE_INCOMING ].split(',');
 	forEach(indexArray, function(incomingIndex){
 		link = fetchEntry(incomingIndex, library.name);
-		if(link[ LINK_TYPE ] === 'c'){
+		if(defined(link) && link[ LINK_TYPE ] === 'c'){
 			entry = fetchEntry(link[ LINK_INCOMING ], library.name);
 			custom = fetchEntry(link[ LINK_CUSTOM ], library.name);
-			if(custom[ NODE_NAME ] === customName){
+			if(defined(custom) && custom[ NODE_NAME ] === customName){
 				result[ customName ].push(entry[ NODE_NAME ]);
 			}
 		}
@@ -270,38 +289,42 @@ var removeIncoming = function(sourceIndex, incomingIndex, name){
 
 var getLinkIndex = function(query, library){
 	var sourceIndex, targetIndex, relationIndex, outgoingNode;
-	var result;
+	var result = null;
 	sourceIndex = library.nodes[query[0]];
 	targetIndex = library.nodes[query[2]];
 	relationIndex = library.nodes[query[1]];
 	sourceData = fetchEntry(sourceIndex, library.name);
 	// this should jump out of the loop once the index is found
-	forEach(sourceData[ NODE_OUTGOING ], function(outgoingIndex){
-		var outgoingNode = fetchEntry(outgoingIndex, library.name);
-		if(outgoingNode[ LINK_OUTGOING ] === ''+targetIndex){
-			result = outgoingIndex;
-		}
-	})
+	if(defined(sourceData)){
+		forEach(sourceData[ NODE_OUTGOING ], function(outgoingIndex){
+			var outgoingNode = fetchEntry(outgoingIndex, library.name);
+			if(defined(outgoingNode) && outgoingNode[ LINK_OUTGOING ] === ''+targetIndex){
+				result = outgoingIndex;
+			}
+		})
+	}
 	return result;
 }
 
 var getCustomLinkIndex = function(query, library){
 	var sourceIndex, targetIndex, relationIndex, outgoingNode;
-	var result;
+	var result = null;
 	sourceIndex = library.nodes[query[0]];
 	targetIndex = library.nodes[query[2]];
 	relationIndex = library.nodes[query[1]];
 	sourceData = fetchEntry(sourceIndex, library.name);
 	// this should jump out of the loop once the index is found
-	forEach(sourceData[ NODE_OUTGOING ], function(outgoingIndex){
-		var outgoingNode = fetchEntry(outgoingIndex, library.name);
-		if(outgoingNode[ LINK_TYPE ] === 'c'){
-			if(outgoingNode[ LINK_OUTGOING ] === ''+targetIndex &&
-			   outgoingNode[ LINK_CUSTOM ] === ''+relationIndex){
-				result = outgoingIndex;
+	if(defined(sourceData)){
+		forEach(sourceData[ NODE_OUTGOING ], function(outgoingIndex){
+			var outgoingNode = fetchEntry(outgoingIndex, library.name);
+			if(defined(outgoingNode) && outgoingNode[ LINK_TYPE ] === 'c'){
+				if(outgoingNode[ LINK_OUTGOING ] === ''+targetIndex &&
+				   outgoingNode[ LINK_CUSTOM ] === ''+relationIndex){
+					result = outgoingIndex;
+				}
 			}
-		}
-	})
+		})
+	}
 	return result;
 }
 
@@ -422,6 +445,10 @@ function removeFromArray(array, item){
 function isNumber(el){
 	return (parseInt(el) === parseInt(el));
 };
+
+function defined(thing){
+	return thing !== undefined && thing !== null;
+}
 
 module.exports = {
 	writeEntry: writeEntry,
