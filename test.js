@@ -1,25 +1,16 @@
+
 var nebulaDB = require('./src/nebuladb.js');
-var db = nebulaDB.create('testdb', function(db){
+nebulaDB.create('nebula', function(db){
+	db.start();
 
-	db.saveAll([
-		['james','->','user'],
-		['james','password','th_805!'],
-		['james','last_name','Madison']
-		]);
-	db.save(['tony','->','user']);
-	db.save(['tony','->','boss']);
-	db.save(['tony','boss','james']);
-	db.save(['boss','->','powerful'])
+	// db.save(['tony -> user']);
+	// db.save(['name -> attr']);
+	db.save(['Tony Baloney','->','name']);
+	db.save(['tony','name', 'Tony Baloney']);
 
-	db.query(['tony','->','*'], function(error, response){
-		console.log(response);
-	});
-	db.query(['james','*','*'], function(error, response){
-		console.log(response);
-	});
-	db.query(['james','password','*'], function(error, response){
-		console.log(response);
-		db.stop();
+	db.query(['tony','name','*'], function(result){
+		console.log(result);
 	});
 
+	db.stop();
 });

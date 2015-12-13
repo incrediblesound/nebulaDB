@@ -1,59 +1,31 @@
-var lexer = require('./lexer.js');
-var _ = require('./lib/helpers.js')
-var fs = require('fs');
-var record = require('./record.js');
-var exec = require('child_process').exec;
-
+var r = require('rethinkdb');
+var _ = require('lodash');
+_ = _.extend(_, require('./lib/helpers.js'));
+var write = require('./write.js');
+var read = require('./read.js');
 var DB = function(){
-	this.size = 0;
+	this.index = 1;
 	this.stack = [];
 	this.busy = false;
 	this.interval;
-	this.library = { nodes: {} };
 };
 
-DB.prototype.init = function(options, cb){
-	this.db = './data/'+options.db;
-	this.tail = '\n};\n';
-	var isFile = fs.existsSync(this.db+'_0.neb');
-
-	if(!isFile){
-		this.library.currentIndex = 0;
-		this.library.currentPage = 0;
-		this.library.name = options.db;
-	} else {
-		var lib = fs.readFileSync(this.db+'.json');
-		lib = JSON.parse(lib);
-		this.library = lib;
-		// compiler.loadLibrary(lib);
-	}
-	cb();
-}
-
-DB.prototype.parse = function(query, cb){
-	var stack, code, data, library;
-	if(typeof query[0] === 'string'){
-		stack = parser([query]);
-	} else {
-		stack = parser(query);
-	}
-	data = compiler.compile(stack);
-	code = data.code;
-	this.library = data.library;
-	cb(code);
-}
-
-DB.prototype.process_save = function(query){
-	query = lexer(query);
-	this.busy = true;
+DB.prototype.init = function(name, cb){
+	this.connection = {host: 'localhost', port: 28015, db: name};
 	var self = this;
-	record.writeEntry(query, 
-					  this.library.currentIndex, 
-					  this.library, function(index){
-		self.library.currentIndex = index;
-		fs.writeFileSync(self.db+'.json', JSON.stringify(self.library));
-	});
-	this.busy = false;
+	return r.connect(this.connection).then(function(conn){
+		return r.table('data').get(0).run(conn);
+	}).then(function(result){
+		this.index = result.count;
+		return cb();
+	})
+}
+
+DB.prototype.process_save = function(query, cb){
+	this.busy = true;
+	write.writeEntry(query, this, _.bind(function(err){
+		this.busy = false;
+	}, this))
 }
 
 DB.prototype.save = function(query){
@@ -74,7 +46,7 @@ DB.prototype.query = function(query, cb){
 DB.prototype.process_removeLink = function(query){
 	query = lexer(query);
 	this.busy = true;
-	record.removeLink(query, this.library);
+	record.removeLink(query, this);
 	this.busy = false;
 }
 
@@ -83,55 +55,39 @@ DB.prototype.removeLink = function(query){
 }
 
 DB.prototype.process_query = function(query, cb){
-	query = lexer(query);
 	var self = this;
 	var result;
 	this.busy = true;
 	if(query[0] === '*'){
 		if(query[1] === '*'){
-			result = record.allIncoming(query[2], this.library);
+			read.allIncoming(query[2], this).then(_.partial(this.returnResult, this, cb));
 		}
 		else if(query[1] !== '->'){
-			result = record.customIncoming(query[2], query[1], this.library);
+			read.customIncoming(query[2], query[1], this).then(_.partial(this.returnResult, this, cb));
 		} else {
-			result = record.incomingSimple(query[2], this.library);
+			read.incomingSimple(query[2], this, _.partial(this.returnResult, this, cb));
 		}
-		if(result instanceof Error){
-			cb(result, null);
-		} else {
-			cb(null, result);
-		}
-		this.busy = false;
-		return;
 	}
 	else if(query[2] === '*'){
 		if(query[1] === '*'){
-			result = record.allOutgoing(query[0], this.library);
+			read.allOutgoing(query[0], this).then(_.partial(this.returnResult, this, cb));
 		}
 		else if(query[1] !== '->'){
-			result = record.customOutgoing(query[0], query[1], this.library);	
+			read.customOutgoing(query[0], query[1], this, _.partial(this.returnResult, this, cb))	
 		} else {
-			result = record.outgoingSimple(query[0], this.library);
+			read.outgoingSimple(query[0], this, _.partial(this.returnResult, this, cb));
 		}
-		if(result instanceof Error){
-			cb(result, null);
-		} else {
-			cb(null, result);
-		}
-		this.busy = false;
-		return;
 	}
 	else if(query[1] !== '->'){
-		result = record.checkCustomRelation(query, this.library);
+		read.checkCustomRelation(query, this).then(_.partial(this.returnResult, this, cb));
 	} else {
-		result = record.checkSimpleRelation(query, this.library);
+		read.checkSimpleRelation(query, this).then(_.partial(this.returnResult, this, cb));
 	}
-	if(result instanceof Error){
-		cb(result, null);
-	} else {
-		cb(null, result);
-	}
-	this.busy = false;
+}
+
+DB.prototype.returnResult = function(self, cb, result){
+	self.busy = false;
+	cb(result);
 }
 
 DB.prototype.start = function(){
@@ -139,32 +95,41 @@ DB.prototype.start = function(){
 	this.interval = setInterval(function(){
 		if(self.stack.length && !self.busy){
 			var data = self.stack.shift();
-			if(data[2] === 'q'){
-				self.process_query(data[0], data[1])
+			var type = data[2];
+			var cb = data[1];
+			var query = _.splitQuery(data[0]);
+
+			if(type === 'q'){
+				self.process_query(query, cb)
 			} 
-			else if(data[2] === 's') {
-				self.process_save(data[0]);
+			else if(type === 's') {
+				self.process_save(query);
 			}
-			else if(data[2] === 'r') {
-				self.process_removeLink(data[0]);
+			else if(type === 'r') {
+				self.process_removeLink(query);
 			}
 		}
-	}, 10)
+	}, 0)
 }
 
-DB.prototype.stop = function(){
+DB.prototype.hardStop = function(){
 	clearInterval(this.interval);
 };
-DB.prototype.lazyStop = function(){
-	while(this.stack.length){}
-	this.stop();
+DB.prototype.stop = function(){
+	var self = this;
+	if(this.stack.length){
+		setTimeout(function(){
+			self.stop();
+		}, 0)
+	} else {
+		this.hardStop();
+	}
 }
 
 var nebuladb = {
 	create: function(name, cb){
 		var db = new DB();
-		db.init({ db: name }, function(){
-			db.start();
+		db.init(name, function(){
 			cb(db);
 		});
 	}
