@@ -70,7 +70,7 @@ DB.prototype.process_query = function(query, cb){
 	}
 	else if(query[2] === '*'){
 		if(query[1] === '*'){
-			read.allOutgoing(query[0], this).then(_.partial(this.returnResult, this, cb));
+			read.allOutgoing(query[0], this, _.partial(this.returnResult, this, cb));
 		}
 		else if(query[1] !== '->'){
 			read.customOutgoing(query[0], query[1], this, _.partial(this.returnResult, this, cb))	

@@ -5,10 +5,13 @@ nebulaDB.create('nebula', function(db){
 
 	// db.save(['tony -> user']);
 	// db.save(['name -> attr']);
-	db.save(['Tony Baloney','->','name']);
-	db.save(['tony','name', 'Tony Baloney']);
+	// db.save(['tony -> user']);
+	// db.save(['tony -> admin']);
+	// db.save(['tony','name', 'Tony Baloney']);
+	// db.save(['tony','speciality', 'Security']);
+	// db.save(['tony','phone', '111 222 3333']);
 
-	db.query(['tony','name','*'], function(result){
+	db.query(['tony','*','*'], function(result){
 		console.log(result);
 	});
 
