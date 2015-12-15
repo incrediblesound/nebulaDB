@@ -2,61 +2,49 @@ var r = require('rethinkdb');
 var _ = require('lodash');
 
 function outgoingSimple(source, self, cb){
-	r.connect(self.connection).then(function(conn){
-		return r.table('data').getAll(source, {index: 'data'}).run(conn);
-	}).then(function(cursor){
-		cursor.toArray(function(err, result){
-			if(err || !result.length){ cb([]); }
-			
-			var record = result[0];
-			if(!record.out.length){
-				cb([]);
-			}
-			r.connect(self.connection).then(function(conn){
-				return r.table('data').getAll(r.args(record.out)).run(conn);
-			}).then(function(cursor){
-				cursor.toArray(function(err, results){
-					results = _.map(results, function(item){
-						return item.data
-					})
-					cb(results)
-				})
+	getAll(self, [source], 'data', function(err, result){
+		if(err || !result.length){ return cb([]); }
+		
+		var record = result[0];
+		if(!record.out.length){ return cb([]); }
+
+		getAll(self, record.out, null, function(err, results){
+
+			results = _.map(results, function(item){
+				return item.data
 			})
+			cb(results)
+
 		})
 	})
 }
 
 function _outgoingCustom(source, self, cb){
-	r.connect(self.connection).then(function(conn){
-		return r.table('data').getAll(source, {index: 'data'}).run(conn);
-	}).then(function(cursor){
-		cursor.toArray(function(err, source){
-			if(err || !source.length){ cb([]); }
-			var source = source[0];
-			r.connect(self.connection).then(function(conn){
-				return r.table('data').getAll(r.args(source.customOut)).run(conn);
-			}).then(function(cursor){
-				cursor.toArray(function(err, links){
-					var items = _.map(links, function(item){ return {id: item.id, data: item.data } });
-					var targetIDs = _.map(links, function(item){ return item.mapOut[source.id] });
-					targetIDs = _.flatten(targetIDs);
-					r.connect(self.connection).then(function(conn){
-						return r.table('data').getAll(r.args(targetIDs)).run(conn);
-					}).then(function(cursor){
-						cursor.toArray(function(err, targets){
-							var result = {};
-							_.map(targets, function(target, i){
-								var parent = _.filter(items, function(item){
-									return _.contains(target.customIn, item.id);
-								})
-								parent = parent[0];
-								result[parent.data] = result[parent.data] || [];
-								result[parent.data].push(target.data);
-							})
-							cb(result);
-						})
+
+	getAll(self, [source], 'data', function(err, source){
+
+		var source = source[0];
+		if(!source.customOut.length){ cb([]); }
+
+		getAll(self, source.customOut, null, function(err, links){
+
+			var items = _.map(links, function(item){ return {id: item.id, data: item.data } });
+			var targetIDs = _.map(links, function(item){ return item.mapOut[source.id] });
+			targetIDs = _.flatten(targetIDs);
+
+			getAll(self, targetIDs, null, function(err, targets){
+
+				var result = {};
+				_.map(targets, function(target, i){
+					var parent = _.filter(items, function(item){
+						return _.contains(target.customIn, item.id);
 					})
+					parent = parent[0];
+					result[parent.data] = result[parent.data] || [];
+					result[parent.data].push(target.data);
 				})
+
+				cb(result);
 			})
 		})
 	})
@@ -119,6 +107,23 @@ function allOutgoing(source, self, cb){
 			cb(finalResult);
 		}
 	}
+}
+
+function getAll(self, ids, index, cb){
+	if(index !== null){
+		r.connect(self.connection).then(function(conn){
+			return r.table('data').getAll(r.args(ids), {index: index}).run(conn);
+		}).then(function(cursor){
+			cursor.toArray(cb);
+		})
+	} else {
+		r.connect(self.connection).then(function(conn){
+			return r.table('data').getAll(r.args(ids)).run(conn);
+		}).then(function(cursor){
+			cursor.toArray(cb);
+		})
+	}
+
 }
 
 module.exports = {
