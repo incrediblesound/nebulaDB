@@ -103,8 +103,8 @@ function incomingSimple(target, self, cb){
 function customOutgoing(source, link, self, cb){
 	getAll(self, [source, link], 'data', function(err, result){
 		if(err || result.length < 2){ cb([]); }
-		var source = result[0];
-		var link = result[1];
+		var source = _.findWhere(result, {data: source});
+		var link =   _.findWhere(result, {data: link});
 		getAll(self, link.mapOut[source.id], null, function(err, result){
 			cb(result);
 		})
@@ -114,14 +114,39 @@ function customOutgoing(source, link, self, cb){
 function customIncoming(target, link, self, cb){
 	getAll(self, [target, link], 'data', function(err, result){
 		if(err || result.length < 2){ cb([]); }
-		var target = result[0];
-		var link = result[1];
+		var target = _.findWhere(result, {data: target});
+		var link =   _.findWhere(result, {data: link});
+
 		getAll(self, link.mapIn[target.id], null, function(err, result){
 			result = _.map(result, function(item){
 				return item.data;
 			})
 			cb(result);
 		})
+	})
+}
+
+function checkCustomRelation(query, self, cb){
+	getAll(self, query, 'data', function(err, result){
+		if(result.length < 3){ return cb(null); }
+
+		var source = _.findWhere(result, { data: query[0] });
+		var link =   _.findWhere(result, { data: query[1] });
+		var target = _.findWhere(result, { data: query[2] });
+		var hasRelation = _.contains(link.mapOut[source.id], target.id);
+		cb(hasRelation);
+	})
+}
+
+function checkSimpleRelation(query, self, cb){
+	getAll(self, query, 'data', function(err, result){
+		if(result.length < 2){ return cb(null); }
+		
+		var source = _.findWhere(result, { data: query[0] });
+		var target = _.findWhere(result, { data: query[1] });
+
+		var hasRelation = _.contains(source.out, target.id);
+		cb(hasRelation);
 	})
 }
 
@@ -188,5 +213,7 @@ module.exports = {
 	customOutgoing: customOutgoing,
 	customIncoming: customIncoming,
 	outgoingSimple: outgoingSimple,
-	incomingSimple: incomingSimple
+	incomingSimple: incomingSimple,
+	checkSimpleRelation: checkSimpleRelation,
+	checkCustomRelation: checkCustomRelation
 }

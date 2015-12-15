@@ -81,7 +81,7 @@ DB.prototype.process_query = function(query, cb){
 	else if(query[1] !== '->'){
 		read.checkCustomRelation(query, this, _.partial(this.returnResult, this, cb));
 	} else {
-		read.checkSimpleRelation(query, this, _.partial(this.returnResult, this, cb));
+		read.checkSimpleRelation([query[0],query[2]], this, _.partial(this.returnResult, this, cb));
 	}
 }
 
