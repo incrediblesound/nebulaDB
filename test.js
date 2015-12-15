@@ -19,7 +19,7 @@ nebulaDB.create('nebula', function(db){
 	// db.save(['first_name','->','james'])
 	// db.save(['good_name','->','james'])
 
-	db.query(['james','*','*'], function(result){
+	db.query(['*','name','james'], function(result){
 		console.log(result);
 	});
 

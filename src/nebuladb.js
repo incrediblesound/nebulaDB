@@ -63,7 +63,7 @@ DB.prototype.process_query = function(query, cb){
 			read.allIncoming(query[2], this, _.partial(this.returnResult, this, cb));
 		}
 		else if(query[1] !== '->'){
-			read.customIncoming(query[2], query[1], this).then(_.partial(this.returnResult, this, cb));
+			read.customIncoming(query[2], query[1], this, _.partial(this.returnResult, this, cb));
 		} else {
 			read.incomingSimple(query[2], this, _.partial(this.returnResult, this, cb));
 		}
@@ -79,9 +79,9 @@ DB.prototype.process_query = function(query, cb){
 		}
 	}
 	else if(query[1] !== '->'){
-		read.checkCustomRelation(query, this).then(_.partial(this.returnResult, this, cb));
+		read.checkCustomRelation(query, this, _.partial(this.returnResult, this, cb));
 	} else {
-		read.checkSimpleRelation(query, this).then(_.partial(this.returnResult, this, cb));
+		read.checkSimpleRelation(query, this, _.partial(this.returnResult, this, cb));
 	}
 }
 

@@ -101,18 +101,26 @@ function incomingSimple(target, self, cb){
 }
 
 function customOutgoing(source, link, self, cb){
-	r.connect(self.connection).then(function(conn){
-		return r.table('data').getAll(source, link, {index: 'data'}).run(conn);
-	}).then(function(cursor){
-		cursor.toArray(function(err, result){
-			if(err || result.length < 2){ cb([]); }
-			var source = result[0];
-			var link = result[1];
-			r.connect(self.connection).then(function(conn){
-				return r.table('data').get(link.mapOut[source.id]).run(conn);
-			}).then(function(result){
-				cb(result.data);
+	getAll(self, [source, link], 'data', function(err, result){
+		if(err || result.length < 2){ cb([]); }
+		var source = result[0];
+		var link = result[1];
+		getAll(self, link.mapOut[source.id], null, function(err, result){
+			cb(result);
+		})
+	})
+}
+
+function customIncoming(target, link, self, cb){
+	getAll(self, [target, link], 'data', function(err, result){
+		if(err || result.length < 2){ cb([]); }
+		var target = result[0];
+		var link = result[1];
+		getAll(self, link.mapIn[target.id], null, function(err, result){
+			result = _.map(result, function(item){
+				return item.data;
 			})
+			cb(result);
 		})
 	})
 }
@@ -178,6 +186,7 @@ module.exports = {
 	allOutgoing: allOutgoing,
 	allIncoming: allIncoming,
 	customOutgoing: customOutgoing,
+	customIncoming: customIncoming,
 	outgoingSimple: outgoingSimple,
 	incomingSimple: incomingSimple
 }
