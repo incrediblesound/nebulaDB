@@ -9,6 +9,9 @@ function outgoingSimple(source, self, cb){
 			if(err || !result.length){ cb([]); }
 			
 			var record = result[0];
+			if(!record.out.length){
+				cb([]);
+			}
 			r.connect(self.connection).then(function(conn){
 				return r.table('data').getAll(r.args(record.out)).run(conn);
 			}).then(function(cursor){
@@ -34,15 +37,21 @@ function _outgoingCustom(source, self, cb){
 				return r.table('data').getAll(r.args(source.customOut)).run(conn);
 			}).then(function(cursor){
 				cursor.toArray(function(err, links){
-					var names = _.map(links, function(item){ return item.data });
+					var items = _.map(links, function(item){ return {id: item.id, data: item.data } });
 					var targetIDs = _.map(links, function(item){ return item.mapOut[source.id] });
+					targetIDs = _.flatten(targetIDs);
 					r.connect(self.connection).then(function(conn){
 						return r.table('data').getAll(r.args(targetIDs)).run(conn);
 					}).then(function(cursor){
 						cursor.toArray(function(err, targets){
 							var result = {};
-							_.map(targets, function(item, i){
-								result[names[i]] = item.data;
+							_.map(targets, function(target, i){
+								var parent = _.filter(items, function(item){
+									return _.contains(target.customIn, item.id);
+								})
+								parent = parent[0];
+								result[parent.data] = result[parent.data] || [];
+								result[parent.data].push(target.data);
 							})
 							cb(result);
 						})

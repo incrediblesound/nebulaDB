@@ -62,8 +62,8 @@ function writeCustomRelation(query, self, cb){
 			var target 	= _.findWhere(results, {data: query[2]});
 
 			if(!results.length){
-				mapOut[self.index] = self.index+2;
-				mapIn[self.index+2] = self.index;
+				mapOut[self.index] = [self.index+2];
+				mapIn[self.index+2] = [self.index];
 				writeRecord(self, { id: self.index, data: query[0], customOut: [self.index+1]})
 				.then(_.partial(writeRecord, self, { id: self.index+1, data: query[1], mapOut: mapOut, mapIn: mapIn }))
 				.then(_.partial(writeRecord, self, { id: self.index+2, data: query[2], customIn: [self.index+1] }))
@@ -87,16 +87,16 @@ function writeCustomRelation(query, self, cb){
 					} else {
 						if(target !== undefined){
 							// no link +source +target
-							mapOut[source.id] = target.id;
-							mapIn[target.id] = source.id;
+							mapOut[source.id] = [target.id];
+							mapIn[target.id] = [source.id];
 							writeRecord(self, {id: self.index, data: query[1], mapIn: mapIn, mapOut: mapOut})
 							.then(_.partial(addCustomOut, self, source.id, self.index, target.id))
 							.then(_.partial(addCustomIn, self, target.id, self.index, source.id))
 							.then(_.partial(updateIndex, self, 1, cb))
 						} else {
 							// no link no target +source
-							mapOut[source.id] = self.index+1;
-							mapIn[self.index+1] = source.id;
+							mapOut[source.id] = [self.index+1];
+							mapIn[self.index+1] = [source.id];
 							writeRecord(self, {id: self.index, data: query[1], mapOut: mapOut, mapIn: mapIn })
 							.then(_.partial(writeRecord, self, {id: self.index+1, data: query[2], customIn: [self.index]}))
 							.then(_.partial(addCustomOut, self, source.id, self.index, self.index+1))
@@ -161,14 +161,15 @@ function addCustomOut(self, source, link, target){
 	})
 }
 function addThroughLink(self, link, source, target){
-	var mapOut = {}, mapIn = {};
-	mapOut[source] = target;
-	mapIn[target] = source;
 	return r.connect(self.connection).then(function(conn){
-		return r.table('data').get(link).update({
-			mapOut: r.row('mapOut').merge(mapOut),
-			mapIn: r.row('mapIn').merge(mapIn)
-		}).run(conn)
+		return r.table('data')
+		        .get(link)
+		        .update(function(link){
+		        	return {
+			        	mapOut: link("mapOut").merge({[source]: link('mapOut')(source.toString()).default([]).setInsert(target) }),
+			        	mapIn: link("mapIn").merge({[target]: link('mapIn')(target.toString()).default([]).setInsert(source) })
+		        	}
+				}).run(conn);
 	})
 }
 
