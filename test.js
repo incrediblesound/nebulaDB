@@ -13,7 +13,13 @@ nebulaDB.create('nebula', function(db){
 	// db.save(['tony','phone','111-222-3333']);
 	// db.save(['tony','phone', '111 222 3333']);
 
-	db.query(['tony','*','*'], function(result){
+	// db.save(['person1','name','james'])
+	// db.save(['person2','name','james'])
+	// db.save(['person3','last_name','james'])
+	// db.save(['first_name','->','james'])
+	// db.save(['good_name','->','james'])
+
+	db.query(['james','*','*'], function(result){
 		console.log(result);
 	});
 
