@@ -1,10 +1,5 @@
 node_modules/
 node_modules/*
-output.c
-out
-a.out
 .DS_Store
-testdb.*
-data/*.neb
-data/*.json
-test2.js
+rethinkdb_data/
+rethinkdb_data/*

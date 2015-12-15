@@ -12,7 +12,8 @@
   "author": "James Edwards",
   "license": "MIT",
   "dependencies": {
-    "commander": "^2.7.1"
+    "commander": "^2.7.1",
+    "rethinkdb": "^2.2.0"
   },
   "devDependencies": {},
   "repository": {

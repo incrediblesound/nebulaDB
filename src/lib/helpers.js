@@ -1,24 +1,11 @@
-exports.isNumber = isNumber; 
-exports.forEach = forEach;
 exports.processValue = processValue;
-exports.noEmpties = noEmpties;
-exports.first = first;
+exports.splitQuery = splitQuery;
 
 function isNumber(x){
 	if(parseInt(x) !== parseInt(x)){
 		return false;
 	}
 	return true;
-}
-
-function forEach(arr, fn){
-	for(var i = 0, l = arr.length; i < l; i++){
-		fn(arr[i], i);
-	}
-}
-
-function first(arr){
-	return arr[0];
 }
 
 function processValue(val){
@@ -29,12 +16,11 @@ function processValue(val){
 	}
 }
 
-function noEmpties(arr){
-	var result = [];
-	forEach(arr, function(el){
-		if(!!el && el !== ' '){
-			result.push(el);
-		}
-	})
-	return result;
+function splitQuery(query){
+	if(query.length === 3){
+		return query;
+	} else {
+		query = query[0].split(' ');
+		return query;
+	}
 }
