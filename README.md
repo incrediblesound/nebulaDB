@@ -20,6 +20,8 @@ You will see a message telling you that the server is listening for requests. Ne
 (POST) /save "['I like toast']"    
 (POST) /query "['I like *']"  	=> response: ['toast']        
 
+It is also possible to use the NebulaDB module by itself instead of accessing it through the server. Look at the test.js file in the root directory for an example of how to do this.
+
 Documentation
 -------------
 
