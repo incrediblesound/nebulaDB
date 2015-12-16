@@ -1,8 +1,8 @@
 NebulaDB
 ======
-NebulaDB implements a simple and intuitive graph database on top of [RethinkDB](https://www.rethinkdb.com/). It is experimental and is currently not as expressive or robust as it could be, but I encourage folks to try it out and make pull requests or open issues.
+NebulaDB implements a simple and intuitive graph database on top of [RethinkDB](https://www.rethinkdb.com/). It is experimental and is currently not as expressive or robust as it could be, but I encourage folks to try it out and make pull requests or open issues. Because RethinkDB has a solid platform problems related to persistence can be ignored and a clean expressive interface can more easily be attained.
 
-To run the database, first install [RethinkDB](https://www.rethinkdb.com/) and get your RethinkDB server up and running. Next clone this repository and run the following commands:
+To run the database first install [RethinkDB](https://www.rethinkdb.com/) and get your RethinkDB server up and running. Next clone this repository and run the following commands:
 
 To create a new Nebula database in Rethink:
 ```shell
@@ -17,8 +17,8 @@ node nebula mydatabase
 ```
 You will see a message telling you that the server is listening for requests. Next, I reccommend using [Postman](https://www.getpostman.com/) to experiment with the API. You simply send Nebula queries in raw text to the API like this:
 
-(POST) /save  "['I like toast']"    
-(POST) /query "['I like *']"  	=> response: ['toast']    
+(POST) /save "['I like toast']"    
+(POST) /query "['I like *']"  	=> response: ['toast']        
 
 Documentation
 -------------
