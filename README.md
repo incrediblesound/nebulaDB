@@ -44,41 +44,25 @@ There are two ways to query the database. The first way is to simply query a pat
 'john -> admin' //=> true
 'john -> founder' //=> false
 ```
-The second way to query is by using an asterisk to indicate which kinds of data you want to see. So far there are three available patterns:
+The second way to query is by using an asterisk to indicate which kinds of data you want to see. Here are some examples preceded by the save queries that would result in the results shown:
 ```javascript
+db.save('john -> user')
+db.save('john -> founder')
+db.save('john first_name John')
+db.save('john nick_name Johnny')
+
 db.query('john -> *')
-// returns array of simple states: { simpleStates: ['admin','user'] }
+// returns array of simple states: ['admin', 'founder']
 db.query('john first_name *')
-// returns the target pointed to by the node in the relation position: { first_name: ["John"] }
+// returns the target pointed to by the node in the middle position: ['John']
 db.query('john * *')
-// returns hash of all target states: { first_name: ['John'], hasState: ['admin'] }
-db.query('* -> admin')
-// returns array of all states that obtain the admin state: { simpleStates: ['john'] }
-db.query('* * 30')
-// returns hash of all source states: { 'age': ['john'], 'simpleState': ['old'] }
+// returns hash of all target states: {simple: ['admin', 'founder' ], custom: { first_name: ['John'], nick_name: ['Johnny'] } }
+db.query('* -> founder')
+// returns array of all states that obtain the admin state: ['john']
+db.query('* * John')
+// returns hash of all source states: { simple: [], custom: { first_name: 'John' } }
 ```
 
-Initialization
---------------
-```javascript
-db.init({name: "dbname"})
-```
-This method creates a new database with the name "dbname" and returns a nebuladb instance. If this is the first init, a json file will be created in the data directory, otherwise nebula will try to load previously saved data for this database. This method is not used directly, but is accessed via the node_nebula module's open method.
-
-Saving
-------
-```javascript
-db.save('a b c')
-db.saveAll(['a b c',
-	    	'a b c',
-	    	'a b c'
-	   		])
-```
-The save method saves a record to the database. All non-existent nodes will be created. The saveAll method takes an array of records and pushes them all into the queue. Queries in string form will be parsed into arrays for processing, but if any of the terms contains spaces you can use array format to define the divisions between source, relation and target.
-```javascript
-db.save('Dave -> user');
-db.save(['Dave', 'comment', 'This board is too negative!']);
-```
 Querying
 --------
 ```javascript
@@ -100,4 +84,4 @@ Editing
 ```javascript
 db.removeLink('a b c');
 ```
-The removeLink method removes a relationship between A and node B. Removing nodes isn't really an option in NebulaDB, but a node with nothing pointing to it is basically inaccessible until another node is updated or created with a connection to that node via its value.
+The removeLink method removes a relationship between A and node B. This feature is not currently implemented, but will be soon.
