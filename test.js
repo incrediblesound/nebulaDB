@@ -1,7 +1,6 @@
 
 var nebulaDB = require('./src/nebuladb.js');
 nebulaDB.create('nebula', function(db){
-	db.start();
 
 	// db.save(['name -> attr']);
 	// db.save(['tony -> user']);
@@ -23,5 +22,4 @@ nebulaDB.create('nebula', function(db){
 		console.log(result);
 	});
 
-	db.stop();
 });
