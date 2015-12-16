@@ -101,21 +101,29 @@ function incomingSimple(target, self, cb){
 }
 
 function customOutgoing(source, link, self, cb){
-	getAll(self, [source, link], 'data', function(err, result){
+	var query = [source, link];
+	getAll(self, query.slice(), 'data', function(err, result){
 		if(err || result.length < 2){ cb([]); }
-		var source = _.findWhere(result, {data: source});
-		var link =   _.findWhere(result, {data: link});
+		var source = _.findWhere(result, {data: query[0]});
+		var link =   _.findWhere(result, {data: query[1]});
+		if(!link.mapOut[source.id] || !link.mapOut[source.id].length){
+			return cb([]);
+		}
 		getAll(self, link.mapOut[source.id], null, function(err, result){
+			result = _.map(result, function(item){
+				return item.data;
+			})
 			cb(result);
 		})
 	})
 }
 
 function customIncoming(target, link, self, cb){
-	getAll(self, [target, link], 'data', function(err, result){
+	var query = [target, link];
+	getAll(self, query.slice(), 'data', function(err, result){
 		if(err || result.length < 2){ cb([]); }
-		var target = _.findWhere(result, {data: target});
-		var link =   _.findWhere(result, {data: link});
+		var target = _.findWhere(result, {data: query[0]});
+		var link =   _.findWhere(result, {data: query[1]});
 
 		getAll(self, link.mapIn[target.id], null, function(err, result){
 			result = _.map(result, function(item){

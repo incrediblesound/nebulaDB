@@ -20,8 +20,7 @@ function writeSimpleRelation(query, self, cb){
 	r.connect(self.connection)
 	.then(function(conn){
 		return r.table('data').getAll(query[0],query[2], {index: "data"}).run(conn);
-	})
-	.then(function(cursor){
+	}).then(function(cursor){
 		cursor.toArray(function(err, results){
 			if(!results.length){
 				writeRecord(self, { id: self.index, data: query[0], out: [self.index+1]})
@@ -30,7 +29,6 @@ function writeSimpleRelation(query, self, cb){
 			} else if(results.length === 1) {
 				var result = results[0], record;
 				if(result.data === query[0]){
-					console.log(query[0], result.id)
 					writeRecord(self, { data: query[2], in: [result.id], id: self.index })
 					.then(_.partial(addOutgoing, self, result.id, self.index))
 					.then(_.partial(updateIndex, self, 1, cb));
