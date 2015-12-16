@@ -1,16 +1,24 @@
 NebulaDB
 ======
-NebulaDB is a simple and intuitive graph database with a minimalist schema. DISCLAIMER: This is an experimental project. Records are saved to disk in a parseable text format via the node.js file system api. There are no hardcore optimizations and the code is not aware of how the kernel is managing (or not managing) the reads and writes. As a result this DB should not be used for serious production software. If you want to explore, hack, and help me improve it then please join the fun.
+NebulaDB implements a simple and intuitive graph database on top of [RethinkDB](https://www.rethinkdb.com/). It is experimental and is currently not as expressive or robust as it could be, but I encourage folks to try it out and make pull requests or open issues.
 
-NebulaDB runs on a Node server. There is a Node.js module for interfacing with the NebulaDB server that can be found [here](https://github.com/incrediblesound/node-nebula). To run this database, clone the repository or download from npm:
+To run the database, first install [RethinkDB](https://www.rethinkdb.com/) and get your RethinkDB server up and running. Next clone this repository and run the following commands:
+
+To create a new Nebula database in Rethink:
 ```shell
-npm install nebuladb
+node createDB mydatabase
 ```
-Then run the server:
+You will see a success message if everything goes well.
+
+
+Next, run the server to listen for reads and writes on your database. This command takes the name of your database as a single option:
 ```shell
-node nebula.js
+node nebula mydatabase
 ```
-You will see a little message telling you that the server is listening for requests, and then you can use the node_nebula module to save and query data.    
+You will see a message telling you that the server is listening for requests. Next, I reccommend using [Postman](https://www.getpostman.com/) to experiment with the API. You simply send Nebula queries in raw text to the API like this:
+
+(POST) /save  "['I like toast']"    
+(POST) /query "['I like *']"  	=> response: ['toast']    
 
 Documentation
 -------------
